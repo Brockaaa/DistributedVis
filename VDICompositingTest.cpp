@@ -12,7 +12,7 @@ int main() {
 
     std::string dataset = "Kingsnake";
 
-    bool isCluster = false;
+    bool isCluster = true;
 
     int provided;
     MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
@@ -69,7 +69,7 @@ int main() {
         std::cout << "compositeVDIs function successfully found!";
     }
 
-    std::string basePath = "/home/aryaman/TestingData/";
+    std::string basePath = "/scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/vdi_dumps/";
 
     std::string filePath = basePath + dataset + "_" + std::to_string(num_processes) + "_" + std::to_string(rank)
                            + "SubVDI4_ndc_";

@@ -7,7 +7,7 @@ JVMData setupJVM(bool isCluster, std::string className) {
     DIR *dir;
     struct dirent *ent;
     std::string classPath = "-Djava.class.path=";
-    std::string directory = "/home/aryaman/Repositories/scenery-insitu/build/libs/";
+    std::string directory = "/scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/insitu_build/";
 
     if ((dir = opendir (directory.c_str())) != nullptr) {
         while ((ent = readdir (dir)) != nullptr) {
@@ -45,15 +45,16 @@ JVMData setupJVM(bool isCluster, std::string className) {
 
     if(isCluster) {
         options[5].optionString = (char *)
-                "-Dorg.lwjgl.system.SharedLibraryExtractPath=/ssd/ws/argupta-vdi_generation/";
+                "-Dorg.lwjgl.system.SharedLibraryExtractPath=/scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation";
         options[6].optionString = (char *)
-                "-Dorg.lwjgl.librarypath=/ssd/ws/argupta-vdi_generation/";
+                "-Dorg.lwjgl.librarypath=/scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation";
     } else {
         options[5].optionString = (char *)
                 "-Dorg.lwjgl.system.SharedLibraryExtractPath=/tmp/";
         options[6].optionString = (char *)
                 "-Dorg.lwjgl.librarypath=/tmp/";
     }
+
 
 
     vm_args.version = JNI_VERSION_1_6;

@@ -51,7 +51,7 @@ int main() {
     std::string dataset = "Kingsnake";
     const bool is16bit = false;
     bool generateVDIs = true;
-    bool isCluster = false;
+    bool isCluster = true;
 
     int provided;
     MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
@@ -90,7 +90,7 @@ int main() {
     if(true) {
 
 
-        int * volume_dimensions = getVolumeDims("/home/aryaman/Datasets/Volume/" + dataset + "/Part1");
+        int * volume_dimensions = getVolumeDims("/scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/Datasets/" + dataset + "/");
         float pixelToWorld = 3.84f / (float)volume_dimensions[0]; //empirical
         setDatasetParams(jvmData, dataset, pixelToWorld, volume_dimensions);
         setMPIParams(jvmData, rank, node_rank, num_processes);
@@ -125,7 +125,7 @@ int main() {
 
         prev_slices = start_slice[rank];
 
-        std::ifstream volumeFile ("/home/aryaman/Datasets/Volume/" + dataset + "/Part1/" + dataset + ".raw", std::ios::in | std::ios::binary);
+        std::ifstream volumeFile ("/scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/Datasets/" + dataset + "/" + dataset + ".raw", std::ios::in | std::ios::binary);
         if(!volumeFile.is_open()) {
             std::cerr<< "Could not open the volume file! " << std::endl;
         }

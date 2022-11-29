@@ -8,6 +8,7 @@
 #include "JVMData.hpp"
 
 void distributeVDIs(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject subVDIDepth, jint sizePerProcess, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer);
+void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressedSubVDICol, jobject compressedSubVDIDepth, jint countSendNReceiveColor, jint countSendNReceiveDepth, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer);
 void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIColor, jobject compositedVDIDepth, jint compositedVDILen, jint root, jint myRank, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer);
 
 void setPointerAddresses(JVMData jvmData, MPI_Comm renderComm);

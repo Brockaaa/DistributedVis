@@ -2,3 +2,4 @@
 cmake-build-debug/
 .lwjgl/
 projectId.sh
+makefile

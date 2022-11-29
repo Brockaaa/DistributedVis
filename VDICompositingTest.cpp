@@ -52,7 +52,7 @@ int main() {
 
     waitRendererConfigured(jvmData);
 
-    //launch the compositing
+    //launch the compositing loop
 
     JNIEnv *env;
     jvmData.jvm->AttachCurrentThread(reinterpret_cast<void **>(&env), NULL);

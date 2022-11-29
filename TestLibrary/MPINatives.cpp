@@ -55,7 +55,9 @@ void setMPIParams(JVMData jvmData , int rank, int node_rank, int commSize) {
 
 void registerNatives(JVMData jvmData) {
     JNINativeMethod methods[] { { (char *)"distributeVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIJJJ)V", (void *)&distributeVDIs },
-                                { (char *)"gatherCompositedVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIIIJJJ)V", (void *)&gatherCompositedVDIs }
+                                { (char *)"distributeCompressedVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIIJJJ)V", (void *)&distributeCompressedVDIs },
+                                { (char *)"gatherCompositedVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIIIJJJ)V", (void *)&gatherCompositedVDIs },
+
     };
 
     int ret = jvmData.env->RegisterNatives(jvmData.clazz, methods, 2);
@@ -127,6 +129,63 @@ void distributeVDIs(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject s
     }
 }
 
+void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressedSubVDICol, jobject compressedSubVDIDepth, jint countSendNReceiveColor, jint countSendNReceiveDepth, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer) {
+    std::cout<<"In distribute Compressed VDIs function. Comm size is "<<commSize<<std::endl;
+
+    void *ptrCol = e->GetDirectBufferAddress(compressedSubVDICol);
+    void *ptrDepth = e->GetDirectBufferAddress(compressedSubVDIDepth);
+
+    void * recvBufCol;
+    recvBufCol = reinterpret_cast<void *>(colPointer);
+
+    if(recvBufCol == nullptr) {
+        std::cout<<"allocating color buffer in distributeVDIs"<<std::endl;
+        recvBufCol = malloc(countSendNReceiveColor * commSize);
+    }
+
+    void * recvBufDepth;
+    recvBufDepth = reinterpret_cast<void *>(depthPointer);
+    if(recvBufDepth == nullptr) {
+        std::cout<<"allocating depth buffer in distributeVDIs"<<std::endl;
+        recvBufDepth = malloc( countSendNReceiveDepth * commSize);
+    }
+
+    auto * renComm = reinterpret_cast<MPI_Comm *>(mpiPointer);
+
+    std::cout<<"Starting all to all with Compression"<<std::endl;
+
+    MPI_Alltoall(ptrCol, countSendNReceiveColor, MPI_BYTE, recvBufCol, countSendNReceiveColor, MPI_BYTE, MPI_COMM_WORLD);
+
+    std::cout<<"Finished color all to all"<<std::endl;
+
+    MPI_Alltoall(ptrDepth, countSendNReceiveDepth, MPI_BYTE, recvBufDepth, countSendNReceiveDepth, MPI_BYTE, MPI_COMM_WORLD);
+
+    printf("Finished both alltoalls with Compression\n");
+
+    jclass clazz = e->GetObjectClass(clazzObject);
+    jmethodID compositeMethod = e->GetMethodID(clazz, "uploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)V");
+
+    jobject bbCol = e->NewDirectByteBuffer(recvBufCol, countSendNReceiveColor * commSize);
+
+    jobject bbDepth = e->NewDirectByteBuffer( recvBufDepth, countSendNReceiveDepth * commSize);
+
+    if(e->ExceptionOccurred()) {
+        e->ExceptionDescribe();
+        e->ExceptionClear();
+    }
+
+    std::cout<<"Finished distributing the VDIs. Calling the Composite method now!"<<std::endl;
+
+    e->CallVoidMethod(clazzObject, compositeMethod, bbCol, bbDepth);
+    if(e->ExceptionOccurred()) {
+        e->ExceptionDescribe();
+        e->ExceptionClear();
+    }
+}
+
+
+
+
 void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIColor, jobject compositedVDIDepth, jint compositedVDILen, jint root, jint myRank, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer) {
 
     std::cout<<"In Gather function " <<std::endl;
@@ -158,7 +217,7 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
 
     dataset += "_" + std::to_string(commSize) + "_" + std::to_string(myRank);
 
-    std::string basePath = "/scratch/ws/1/anr392b-test-workspace/argupta-vdi_generation/vdi_dumps/";
+    std::string basePath = "/home/aryaman/TestingData/";
 
     if(myRank == 0) {
 //        //send or store the VDI

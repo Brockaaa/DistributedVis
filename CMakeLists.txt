@@ -4,7 +4,23 @@ project(DistributedVis)
 #set(JAVA_HOME "/usr/lib/jvm/adoptopenjdk-11-hotspot-amd64/")
 
 find_package(Java)
+
+set(JAVA_HOME "/Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home")
+
+
+#if(APPLE)
+#    SET(JAVA_INCLUDE_PATH2 "$ENV{JAVA_HOME}/include")
+#endif()
+set(JAVA_INCLUDE_PATH "${JAVA_HOME}/include/;${JAVA_HOME}/include/darwin")
+set(JAVA_AWT_INCLUDE_PATH "${JAVA_HOME}/include/;${JAVA_HOME}/include/darwin")
+SET(JAVA_INCLUDE_PATH2 "${JAVA_HOME}/include/;${JAVA_HOME}/include/darwin")
+SET(JNI_INCLUDE_DIRS "${JAVA_HOME}/include/;${JAVA_HOME}/include/darwin")
+##
+
+
 find_package(JNI)
+
+SET(JNI_LIBRARIES "${JAVA_HOME}/lib/libjawt.dylib;${JAVA_HOME}/lib/server/libjvm.dylib")
 
 #set(JNI_LIBRARIES /usr/lib/jvm/adoptopenjdk-11-hotspot-amd64/lib/libjawt.so;/usr/lib/jvm/adoptopenjdk-11-hotspot-amd64/lib/server/libjvm.so)
 

@@ -1,0 +1,2 @@
+/sw/installed/binutils/2.36.1-GCCcore-10.3.0/bin/ar qc libTestLibrary.a CMakeFiles/TestLibrary.dir/test.cpp.o
+/sw/installed/binutils/2.36.1-GCCcore-10.3.0/bin/ranlib libTestLibrary.a

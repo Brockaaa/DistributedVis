@@ -163,7 +163,7 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
     printf("Finished both alltoalls with Compression\n");
 
     jclass clazz = e->GetObjectClass(clazzObject);
-    jmethodID compositeMethod = e->GetMethodID(clazz, "uploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)V");
+    jmethodID compositeMethod = e->GetMethodID(clazz, "decompressAndUploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)V");
 
     jobject bbCol = e->NewDirectByteBuffer(recvBufCol, countSendNReceiveColor * commSize);
 
@@ -174,7 +174,7 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
         e->ExceptionClear();
     }
 
-    std::cout<<"Finished distributing the VDIs. Calling the Composite method now!"<<std::endl;
+    std::cout<<"Finished distributing the VDIs. Calling the decompression Composite method now!"<<std::endl;
 
     e->CallVoidMethod(clazzObject, compositeMethod, bbCol, bbDepth);
     if(e->ExceptionOccurred()) {

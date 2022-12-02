@@ -60,7 +60,7 @@ void registerNatives(JVMData jvmData) {
 
     };
 
-    int ret = jvmData.env->RegisterNatives(jvmData.clazz, methods, 2);
+    int ret = jvmData.env->RegisterNatives(jvmData.clazz, methods, 3);
     if(ret < 0) {
         if( jvmData.env->ExceptionOccurred() ) {
             jvmData.env->ExceptionDescribe();

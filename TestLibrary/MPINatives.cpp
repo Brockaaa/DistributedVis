@@ -212,7 +212,7 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
 
     std::cout<<"Finished color all to all"<<std::endl;
 
-    MPI_Alltoallv(ptrDepth, countsSendDepth, displacementSendDepth, MPI_BYTE, recvBufDepth, colorLimitsRecv, displacementRecvDepth,  MPI_BYTE, MPI_COMM_WORLD);
+    MPI_Alltoallv(ptrDepth, countsSendDepth, displacementSendDepth, MPI_BYTE, recvBufDepth, depthLimitsRecv, displacementRecvDepth,  MPI_BYTE, MPI_COMM_WORLD);
 
     printf("Finished both alltoalls with Compression\n");
 

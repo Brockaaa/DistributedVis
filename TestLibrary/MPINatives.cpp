@@ -155,8 +155,8 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
     int colorLimitsRecv[commSize];
     int depthLimitsRecv[commSize];
     std::cout<<"Starting all to all for Limits which are "<< colLimits[0] << " "<< colLimits[1] << " "<< colLimits[2] << " "<< colLimits[3] << " "<<std::endl;
-    MPI_Alltoall(colorLimits, 1, MPI_INT, colorLimitsRecv, 1, MPI_INT, MPI_COMM_WORLD);
-    MPI_Alltoall(depthLimits, 1, MPI_INT, depthLimitsRecv, 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(&colorLimits, 1, MPI_INT, colorLimitsRecv, 1, MPI_INT, MPI_COMM_WORLD);
+    MPI_Alltoall(&depthLimits, 1, MPI_INT, depthLimitsRecv, 1, MPI_INT, MPI_COMM_WORLD);
 
     std::cout<<"Finished all to all for Limits: "<< colorLimitsRecv[0] << " "<< colorLimitsRecv[1] << " "<< colorLimitsRecv[2] << " "<< colorLimitsRecv[3] << " " <<std::endl;
 

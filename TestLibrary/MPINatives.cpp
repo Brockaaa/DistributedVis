@@ -217,11 +217,18 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
     printf("Finished both alltoalls with Compression\n");
 
     jclass clazz = e->GetObjectClass(clazzObject);
-    jmethodID compositeMethod = e->GetMethodID(clazz, "decompressAndUploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)V");
+    jmethodID compositeMethod = e->GetMethodID(clazz, "decompressAndUploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;[I[I)V");
 
     jobject bbCol = e->NewDirectByteBuffer(recvBufCol, displacementRecvSumColor);
 
     jobject bbDepth = e->NewDirectByteBuffer( recvBufDepth, displacementRecvSumDepth);
+
+    jintArray javaColorLimits = e->NewIntArray(commSize);
+    e->SetIntArrayRegion(javaColorLimits, 0, commSize, colorLimitsRecv);
+
+    jintArray javaDepthLimits = e->NewIntArray(commSize);
+    e->SetIntArrayRegion(javaDepthLimits, 0, commSize, depthLimitsRecv);
+
 
     if(e->ExceptionOccurred()) {
         e->ExceptionDescribe();
@@ -230,7 +237,7 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
 
     std::cout<<"Finished distributing the VDIs. Calling the decompression Composite method now!"<<std::endl;
 
-    e->CallVoidMethod(clazzObject, compositeMethod, bbCol, bbDepth);
+    e->CallVoidMethod(clazzObject, compositeMethod, bbCol, bbDepth, javaColorLimits, javaDepthLimits);
     if(e->ExceptionOccurred()) {
         e->ExceptionDescribe();
         e->ExceptionClear();

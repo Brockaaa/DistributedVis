@@ -174,10 +174,10 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
     int displacementRecvDepth[commSize];
 
     for( int i = 0 ; i < commSize ; i ++){
-        displacementSendColor[i] = displacementRecvSumColor;
-        displacementSendDepth[i] = displacementRecvSumDepth;
-        displacementRecvSumColor += colLimits[i];
-        displacementRecvSumDepth += depLimits[i];
+        displacementRecvColor[i] = displacementRecvSumColor;
+        displacementRecvDepth[i] = displacementRecvSumDepth;
+        displacementRecvSumColor += colorLimitsRecv[i];
+        displacementRecvSumDepth += depthLimitsRecv[i];
     }
 
 

@@ -132,20 +132,18 @@ void distributeVDIs(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject s
 void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressedSubVDICol, jobject compressedSubVDIDepth, jintArray colorLimits, jintArray depthLimits , jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer) {
     std::cout<<"In distribute Compressed VDIs function. Comm size is "<<commSize<<std::endl;
 
+    auto beginAllToAllLimits = std::chrono::high_resolution_clock::now();
     //allToAllv Setup
     jint *colLimits = e->GetIntArrayElements(colorLimits, NULL);
     jint *depLimits = e->GetIntArrayElements(depthLimits, NULL);
 
-    int countsSendColor[commSize];
-    int countsSendDepth[commSize];
     int displacementSendSumColor = 0;
     int displacementSendSumDepth = 0;
     int displacementSendColor[commSize];
     int displacementSendDepth[commSize];
 
     for( int i = 0 ; i < commSize ; i ++){
-        countsSendColor[i] = colLimits[i];
-        countsSendDepth[i] = depLimits[i];
+
         displacementSendColor[i] = displacementSendSumColor;
         displacementSendDepth[i] = displacementSendSumDepth;
         displacementSendSumColor += colLimits[i];
@@ -158,15 +156,22 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
     //first send the limits to each process
     int colorLimitsRecv[commSize];
     int depthLimitsRecv[commSize];
-    std::cout<<"At Node "<< my_rank <<" Starting all to all for Limits which are "<< colLimits[0] << " "<< colLimits[1] << " "<< colLimits[2] << " "<< colLimits[3] << " "<<std::endl;
+
     MPI_Alltoall(colLimits, 1, MPI_INT, colorLimitsRecv, 1, MPI_INT, MPI_COMM_WORLD);
     MPI_Alltoall(depLimits, 1, MPI_INT, depthLimitsRecv, 1, MPI_INT, MPI_COMM_WORLD);
 
-    std::cout<<"At Node "<< my_rank <<" Finished all to all for Limits: "<< colorLimitsRecv[0] << " "<< colorLimitsRecv[1] << " "<< colorLimitsRecv[2] << " "<< colorLimitsRecv[3] << " " <<std::endl;
+    auto endAllToAllLimits = std::chrono::high_resolution_clock::now();
+
+    auto elapsed_AllToAllLimits = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAllLimits - beginAllToAllLimits;
+    std::cout << "AllToAll Limits took in seconds: " << elapsed_AllToAllLimits.count() * 1e-9 << std::endl;
 
 
     //sync all processes
     MPI_Barrier(MPI_COMM_WORLD);
+
+    std::cout<<"Starting all to all with Compression"<<std::endl;
+
+    auto beginAllToAll = std::chrono::high_resolution_clock::now();
 
     int displacementRecvSumColor = 0;
     int displacementRecvSumDepth = 0;
@@ -209,14 +214,14 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
 
     auto * renComm = reinterpret_cast<MPI_Comm *>(mpiPointer);
 
+    MPI_Alltoallv(ptrCol, colLimits, displacementSendColor,MPI_BYTE, recvBufCol, colorLimitsRecv, displacementRecvColor,MPI_BYTE, MPI_COMM_WORLD);
 
-    std::cout<<"Starting all to all with Compression"<<std::endl;
+    MPI_Alltoallv(ptrDepth, depLimits, displacementSendDepth, MPI_BYTE, recvBufDepth, depthLimitsRecv, displacementRecvDepth,  MPI_BYTE, MPI_COMM_WORLD);
 
-    MPI_Alltoallv(ptrCol, countsSendColor, displacementSendColor,MPI_BYTE, recvBufCol, colorLimitsRecv, displacementRecvColor,MPI_BYTE, MPI_COMM_WORLD);
+    auto endAllToAll = std::chrono::high_resolution_clock::now();
 
-    std::cout<<"Finished color all to all"<<std::endl;
-
-    MPI_Alltoallv(ptrDepth, countsSendDepth, displacementSendDepth, MPI_BYTE, recvBufDepth, depthLimitsRecv, displacementRecvDepth,  MPI_BYTE, MPI_COMM_WORLD);
+    auto elapsed_AllToAll = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAllLimits - beginAllToAllLimits;
+    std::cout << "AllToAll Limits took in seconds: " << elapsed_AllToAll.count() * 1e-9 << std::endl;
 
     printf("Finished both alltoalls with Compression\n");
 

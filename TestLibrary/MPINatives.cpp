@@ -163,7 +163,7 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
 
     auto endAllToAllLimits = std::chrono::high_resolution_clock::now();
 
-    auto elapsed_AllToAllLimits = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAllLimits - beginAllToAllLimits;
+    auto elapsed_AllToAllLimits = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAllLimits - beginAllToAllLimits);
     std::cout << "AllToAll Limits took in seconds: " << elapsed_AllToAllLimits.count() * 1e-9 << std::endl;
 
 
@@ -221,7 +221,7 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
 
     auto endAllToAll = std::chrono::high_resolution_clock::now();
 
-    auto elapsed_AllToAll = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAllLimits - beginAllToAllLimits;
+    auto elapsed_AllToAll = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAllLimits - beginAllToAllLimits);
     std::cout << "AllToAll Limits took in seconds: " << elapsed_AllToAll.count() * 1e-9 << std::endl;
 
     printf("Finished both alltoalls with Compression\n");

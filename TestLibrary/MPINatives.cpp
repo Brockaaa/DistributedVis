@@ -134,26 +134,9 @@ void distributeVDIs(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject s
 void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressedSubVDICol, jobject compressedSubVDIDepth, jintArray colorLimits, jintArray depthLimits , jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer) {
     std::cout<<"In distribute Compressed VDIs function. Comm size is "<<commSize<<std::endl;
 
-    auto beginAllToAllLimits = std::chrono::high_resolution_clock::now();
-    //allToAllv Setup
     jint *colLimits = e->GetIntArrayElements(colorLimits, NULL);
     jint *depLimits = e->GetIntArrayElements(depthLimits, NULL);
 
-    int displacementSendSumColor = 0;
-    int displacementSendSumDepth = 0;
-    int displacementSendColor[commSize];
-    int displacementSendDepth[commSize];
-
-    for( int i = 0 ; i < commSize ; i ++){
-
-        displacementSendColor[i] = displacementSendSumColor;
-        displacementSendDepth[i] = displacementSendSumDepth;
-        displacementSendSumColor += colLimits[i];
-        displacementSendSumDepth += depLimits[i];
-    }
-
-    int my_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
     //first send the limits to each process
     int colorLimitsRecv[commSize];
@@ -162,31 +145,8 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
     MPI_Alltoall(colLimits, 1, MPI_INT, colorLimitsRecv, 1, MPI_INT, MPI_COMM_WORLD);
     MPI_Alltoall(depLimits, 1, MPI_INT, depthLimitsRecv, 1, MPI_INT, MPI_COMM_WORLD);
 
-    auto endAllToAllLimits = std::chrono::high_resolution_clock::now();
-
-    auto elapsed_AllToAllLimits = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAllLimits - beginAllToAllLimits);
-    std::cout << "AllToAll Limits took in seconds: " << elapsed_AllToAllLimits.count() * 1e-9 << std::endl;
-
-
     //sync all processes
     MPI_Barrier(MPI_COMM_WORLD);
-
-    std::cout<<"Starting all to all with Compression"<<std::endl;
-
-    auto beginAllToAll = std::chrono::high_resolution_clock::now();
-
-    int displacementRecvSumColor = 0;
-    int displacementRecvSumDepth = 0;
-    int displacementRecvColor[commSize];
-    int displacementRecvDepth[commSize];
-
-    for( int i = 0 ; i < commSize ; i ++){
-        displacementRecvColor[i] = displacementRecvSumColor;
-        displacementRecvDepth[i] = displacementRecvSumDepth;
-        displacementRecvSumColor += colorLimitsRecv[i];
-        displacementRecvSumDepth += depthLimitsRecv[i];
-    }
-
 
     void *ptrCol = e->GetDirectBufferAddress(compressedSubVDICol);
     void *ptrDepth = e->GetDirectBufferAddress(compressedSubVDIDepth);
@@ -214,16 +174,40 @@ void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressed
         recvBufDepth = malloc(sum);
     }
 
+    //set up the AllToAllv
+    int displacementSendSumColor = 0;
+    int displacementSendSumDepth = 0;
+    int displacementSendColor[commSize];
+    int displacementSendDepth[commSize];
+
+    int displacementRecvSumColor = 0;
+    int displacementRecvSumDepth = 0;
+    int displacementRecvColor[commSize];
+    int displacementRecvDepth[commSize];
+
+    for( int i = 0 ; i < commSize ; i ++){
+        displacementSendColor[i] = displacementSendSumColor;
+        displacementSendDepth[i] = displacementSendSumDepth;
+        displacementSendSumColor += colLimits[i];
+        displacementSendSumDepth += depLimits[i];
+
+        displacementRecvColor[i] = displacementRecvSumColor;
+        displacementRecvDepth[i] = displacementRecvSumDepth;
+        displacementRecvSumColor += colorLimitsRecv[i];
+        displacementRecvSumDepth += depthLimitsRecv[i];
+    }
+
     auto * renComm = reinterpret_cast<MPI_Comm *>(mpiPointer);
 
+    std::cout<<"Starting all to all with Compression"<<std::endl;
+
     MPI_Alltoallv(ptrCol, colLimits, displacementSendColor,MPI_BYTE, recvBufCol, colorLimitsRecv, displacementRecvColor,MPI_BYTE, MPI_COMM_WORLD);
+
+    std::cout<<"Finished Color all to all"<<std::endl;
 
     MPI_Alltoallv(ptrDepth, depLimits, displacementSendDepth, MPI_BYTE, recvBufDepth, depthLimitsRecv, displacementRecvDepth,  MPI_BYTE, MPI_COMM_WORLD);
 
     auto endAllToAll = std::chrono::high_resolution_clock::now();
-
-    auto elapsed_AllToAll = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAll - beginAllToAll);
-    std::cout << "AllToAll Values took in seconds: #ALLLIM:"<< my_rank << ":" << elapsed_AllToAll.count() * 1e-9 << "#" << std::endl;
 
     printf("Finished both alltoalls with Compression\n");
 
@@ -260,25 +244,9 @@ void distributeCompressedVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobjec
     std::cout<<"In distribute Compressed VDIs (Benchmark) function. Comm size is "<<commSize<<std::endl;
 
     auto beginAllToAllLimits = std::chrono::high_resolution_clock::now();
-    //allToAllv Setup
+
     jint *colLimits = e->GetIntArrayElements(colorLimits, NULL);
     jint *depLimits = e->GetIntArrayElements(depthLimits, NULL);
-
-    int displacementSendSumColor = 0;
-    int displacementSendSumDepth = 0;
-    int displacementSendColor[commSize];
-    int displacementSendDepth[commSize];
-
-    for( int i = 0 ; i < commSize ; i ++){
-
-        displacementSendColor[i] = displacementSendSumColor;
-        displacementSendDepth[i] = displacementSendSumDepth;
-        displacementSendSumColor += colLimits[i];
-        displacementSendSumDepth += depLimits[i];
-    }
-
-    int my_rank;
-    MPI_Comm_rank(MPI_COMM_WORLD, &my_rank);
 
     //first send the limits to each process
     int colorLimitsRecv[commSize];
@@ -292,26 +260,13 @@ void distributeCompressedVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobjec
     auto elapsed_AllToAllLimits = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAllLimits - beginAllToAllLimits);
     std::cout << "AllToAll Limits took in seconds: #ALLLIM:"<< rank << ":" << iteration << ":" << elapsed_AllToAllLimits.count() * 1e-9 << "#" << std::endl;
 
-
     //sync all processes
     MPI_Barrier(MPI_COMM_WORLD);
 
     std::cout<<"Starting all to all with Compression"<<std::endl;
 
+
     auto beginAllToAll = std::chrono::high_resolution_clock::now();
-
-    int displacementRecvSumColor = 0;
-    int displacementRecvSumDepth = 0;
-    int displacementRecvColor[commSize];
-    int displacementRecvDepth[commSize];
-
-    for( int i = 0 ; i < commSize ; i ++){
-        displacementRecvColor[i] = displacementRecvSumColor;
-        displacementRecvDepth[i] = displacementRecvSumDepth;
-        displacementRecvSumColor += colorLimitsRecv[i];
-        displacementRecvSumDepth += depthLimitsRecv[i];
-    }
-
 
     void *ptrCol = e->GetDirectBufferAddress(compressedSubVDICol);
     void *ptrDepth = e->GetDirectBufferAddress(compressedSubVDIDepth);
@@ -340,6 +295,29 @@ void distributeCompressedVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobjec
     }
 
     auto * renComm = reinterpret_cast<MPI_Comm *>(mpiPointer);
+
+    //set up the AllToAllv
+    int displacementSendSumColor = 0;
+    int displacementSendSumDepth = 0;
+    int displacementSendColor[commSize];
+    int displacementSendDepth[commSize];
+
+    int displacementRecvSumColor = 0;
+    int displacementRecvSumDepth = 0;
+    int displacementRecvColor[commSize];
+    int displacementRecvDepth[commSize];
+
+    for( int i = 0 ; i < commSize ; i ++){
+        displacementSendColor[i] = displacementSendSumColor;
+        displacementSendDepth[i] = displacementSendSumDepth;
+        displacementSendSumColor += colLimits[i];
+        displacementSendSumDepth += depLimits[i];
+
+        displacementRecvColor[i] = displacementRecvSumColor;
+        displacementRecvDepth[i] = displacementRecvSumDepth;
+        displacementRecvSumColor += colorLimitsRecv[i];
+        displacementRecvSumDepth += depthLimitsRecv[i];
+    }
 
     MPI_Alltoallv(ptrCol, colLimits, displacementSendColor,MPI_BYTE, recvBufCol, colorLimitsRecv, displacementRecvColor,MPI_BYTE, MPI_COMM_WORLD);
 

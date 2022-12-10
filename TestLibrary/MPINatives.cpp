@@ -56,13 +56,14 @@ void setMPIParams(JVMData jvmData , int rank, int node_rank, int commSize) {
 
 void registerNatives(JVMData jvmData) {
     JNINativeMethod methods[] { { (char *)"distributeVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIJJJ)V", (void *)&distributeVDIs },
+                                { (char *)"distributeVDIsForBenchmark", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIJJJII)V", (void *)&distributeVDIsForBenchmark },
                                 { (char *)"distributeCompressedVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;[I[IIJJJ)V", (void *)&distributeCompressedVDIs },
                                 { (char *)"distributeCompressedVDIsForBenchmark", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;[I[IIJJJII)V", (void *)&distributeCompressedVDIsForBenchmark },
                                 { (char *)"gatherCompositedVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIIIJJJ)V", (void *)&gatherCompositedVDIs },
 
     };
 
-    int ret = jvmData.env->RegisterNatives(jvmData.clazz, methods, 4);
+    int ret = jvmData.env->RegisterNatives(jvmData.clazz, methods, 5);
     if(ret < 0) {
         if( jvmData.env->ExceptionOccurred() ) {
             jvmData.env->ExceptionDescribe();
@@ -75,8 +76,11 @@ void registerNatives(JVMData jvmData) {
     }
 }
 
+
+
 void distributeVDIs(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject subVDIDepth, jint sizePerProcess, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer) {
     std::cout<<"In distribute VDIs function. Comm size is "<<commSize<<std::endl;
+
 
     void *ptrCol = e->GetDirectBufferAddress(subVDICol);
     void *ptrDepth = e->GetDirectBufferAddress(subVDIDepth);
@@ -105,6 +109,66 @@ void distributeVDIs(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject s
     std::cout<<"Finished color all to all"<<std::endl;
 
     MPI_Alltoall(ptrDepth, windowHeight * windowWidth * numSupersegments * 4 * 2 / commSize, MPI_BYTE, recvBufDepth, windowHeight * windowWidth * numSupersegments * 4 * 2 / commSize, MPI_BYTE, MPI_COMM_WORLD);
+
+    printf("Finished both alltoalls\n");
+
+    jclass clazz = e->GetObjectClass(clazzObject);
+    jmethodID compositeMethod = e->GetMethodID(clazz, "uploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)V");
+
+    jobject bbCol = e->NewDirectByteBuffer(recvBufCol, sizePerProcess * commSize * 4);
+
+    jobject bbDepth;
+
+    bbDepth = e->NewDirectByteBuffer( recvBufDepth, sizePerProcess * commSize * 2);
+
+    if(e->ExceptionOccurred()) {
+        e->ExceptionDescribe();
+        e->ExceptionClear();
+    }
+
+    std::cout<<"Finished distributing the VDIs. Calling the Composite method now!"<<std::endl;
+
+    e->CallVoidMethod(clazzObject, compositeMethod, bbCol, bbDepth);
+    if(e->ExceptionOccurred()) {
+        e->ExceptionDescribe();
+        e->ExceptionClear();
+    }
+}
+
+void distributeVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject subVDIDepth, jint sizePerProcess, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer, jint rank, jint iteration) {
+    std::cout<<"In distribute VDIs function. Comm size is "<<commSize<<std::endl;
+
+    auto beginAllToAll = std::chrono::high_resolution_clock::now();
+
+    void *ptrCol = e->GetDirectBufferAddress(subVDICol);
+    void *ptrDepth = e->GetDirectBufferAddress(subVDIDepth);
+
+    void * recvBufCol;
+    recvBufCol = reinterpret_cast<void *>(colPointer);
+
+    if(recvBufCol == nullptr) {
+        std::cout<<"allocating color buffer in distributeVDIs"<<std::endl;
+        recvBufCol = malloc(sizePerProcess * 4 * commSize);
+    }
+
+    void * recvBufDepth;
+    recvBufDepth = reinterpret_cast<void *>(depthPointer);
+    if(recvBufDepth == nullptr) {
+        std::cout<<"allocating depth buffer in distributeVDIs"<<std::endl;
+        recvBufDepth = malloc(sizePerProcess * 2 * commSize);
+    }
+
+    auto * renComm = reinterpret_cast<MPI_Comm *>(mpiPointer);
+
+    MPI_Alltoall(ptrCol, windowHeight * windowWidth * numSupersegments * 4 * 4 / commSize, MPI_BYTE, recvBufCol, windowHeight * windowWidth * numSupersegments * 4 * 4 / commSize, MPI_BYTE, MPI_COMM_WORLD);
+
+    MPI_Alltoall(ptrDepth, windowHeight * windowWidth * numSupersegments * 4 * 2 / commSize, MPI_BYTE, recvBufDepth, windowHeight * windowWidth * numSupersegments * 4 * 2 / commSize, MPI_BYTE, MPI_COMM_WORLD);
+
+    auto endAllToAll = std::chrono::high_resolution_clock::now();
+
+    auto elapsed_AllToAll = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAll - beginAllToAll);
+    std::cout << "AllToAll Values took in seconds: #ALLVAL:"<< rank << ":" << iteration << ":" << elapsed_AllToAll.count() * 1e-9 << "#"<< std::endl;
+
 
     printf("Finished both alltoalls\n");
 

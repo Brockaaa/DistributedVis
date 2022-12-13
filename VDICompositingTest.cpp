@@ -12,7 +12,11 @@ int main() {
 
     std::string dataset = "Kingsnake";
 
-    bool isCluster = true;
+    const bool isCluster = true;
+
+    // settings
+    const bool withCompression = true;
+    const bool benchmarkValues = true;
 
     int provided;
     MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
@@ -44,9 +48,7 @@ int main() {
 
     setMPIParams(jvmData, rank, node_rank, num_processes);
 
-    jstring jdataset = jvmData.env->NewStringUTF(dataset.c_str());
-    jfieldID datasetField = jvmData.env->GetFieldID(jvmData.clazz, "dataset", "Ljava/lang/String;");
-    jvmData.env->SetObjectField(jvmData.obj, datasetField, jdataset);
+    setProgramSettings(jvmData, dataset, withCompression, benchmarkValues);
 
     std::thread render(&doRender, jvmData);
 

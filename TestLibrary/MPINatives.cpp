@@ -325,6 +325,7 @@ void distributeCompressedVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobjec
     std::cout << "AllToAll Limits took in seconds: #ALLLIM:"<< rank << ":" << iteration << ":" << elapsed_AllToAllLimits.count() * 1e-9 << "#" << std::endl;
 
     //sync all processes
+    // for measuring each call / not so good for whole program
     MPI_Barrier(MPI_COMM_WORLD);
 
     std::cout<<"Starting all to all with Compression"<<std::endl;
@@ -487,4 +488,23 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
             count++;
         }
     }
+
+}
+
+void setProgramSettings(JVMData jvmData, std::string dataset, bool withCompression, bool benchmarkValues){
+
+    jstring jdataset = jvmData.env->NewStringUTF(dataset.c_str());
+    jfieldID datasetField = jvmData.env->GetFieldID(jvmData.clazz, "dataset", "Ljava/lang/String;");
+    jvmData.env->SetObjectField(jvmData.obj, datasetField, jdataset);
+
+    jboolean jWithCompression = withCompression;
+    jfieldID withCompressionField = jvmData.env->GetFieldID(jvmData.clazz, "withCompression", "Z");
+    jvmData.env->SetBooleanField(jvmData.obj, withCompressionField, jWithCompression);
+
+    jboolean jBenchmarkValues = benchmarkValues;
+    jfieldID benchmarkValuesField = jvmData.env->GetFieldID(jvmData.clazz, "withCompression", "Z");
+    jvmData.env->SetBooleanField(jvmData.obj, benchmarkValuesField, jBenchmarkValues);
+
+
+
 }

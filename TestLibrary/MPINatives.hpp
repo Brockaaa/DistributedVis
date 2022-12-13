@@ -5,6 +5,7 @@
 #ifndef DISTRIBUTEDVIS_MPINATIVES_HPP
 #define DISTRIBUTEDVIS_MPINATIVES_HPP
 
+#include <iostream>
 #include "JVMData.hpp"
 
 void distributeVDIs(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject subVDIDepth, jint sizePerProcess, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer);
@@ -16,5 +17,6 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
 void setPointerAddresses(JVMData jvmData, MPI_Comm renderComm);
 void setMPIParams(JVMData jvmData , int rank, int node_rank, int commSize);
 void registerNatives(JVMData jvmData);
+void setProgramSettings(JVMData jvmData, std::string dataset, bool withCompression, bool benchmarkValues);
 
 #endif //DISTRIBUTEDVIS_MPINATIVES_HPP

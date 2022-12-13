@@ -18,6 +18,8 @@ int main() {
     const bool withCompression = true;
     const bool benchmarkValues = true;
 
+    int iterations = 8;
+
     int provided;
     MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
 
@@ -95,7 +97,7 @@ int main() {
     jobject jdepthBuffer = env->NewDirectByteBuffer(depthBuffer, depthSize);
 
 
-    int iterations = 5;
+
 
     env->CallVoidMethod(jvmData.obj, compositeMethod, jcolorBuffer, jdepthBuffer, rank, iterations);
     if(env->ExceptionOccurred()) {

@@ -502,7 +502,7 @@ void setProgramSettings(JVMData jvmData, std::string dataset, bool withCompressi
     jvmData.env->SetBooleanField(jvmData.obj, withCompressionField, jWithCompression);
 
     jboolean jBenchmarkValues = benchmarkValues;
-    jfieldID benchmarkValuesField = jvmData.env->GetFieldID(jvmData.clazz, "withCompression", "Z");
+    jfieldID benchmarkValuesField = jvmData.env->GetFieldID(jvmData.clazz, "isBenchmark", "Z");
     jvmData.env->SetBooleanField(jvmData.obj, benchmarkValuesField, jBenchmarkValues);
 
 

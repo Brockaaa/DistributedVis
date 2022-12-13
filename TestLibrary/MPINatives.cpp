@@ -57,13 +57,12 @@ void setMPIParams(JVMData jvmData , int rank, int node_rank, int commSize) {
 void registerNatives(JVMData jvmData) {
     JNINativeMethod methods[] { { (char *)"distributeVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIJJJ)V", (void *)&distributeVDIs },
                                 { (char *)"distributeVDIsForBenchmark", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIJJJII)V", (void *)&distributeVDIsForBenchmark },
-                                { (char *)"distributeCompressedVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;[I[IIJJJ)V", (void *)&distributeCompressedVDIs },
-                                { (char *)"distributeCompressedVDIsForBenchmark", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;[I[IIJJJII)V", (void *)&distributeCompressedVDIsForBenchmark },
+                                { (char *)"distributeVDIsWithVariableLength", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;[I[IIJJJZII)V", (void *)&distributeVDIsWithVariableLength },
                                 { (char *)"gatherCompositedVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIIIJJJ)V", (void *)&gatherCompositedVDIs },
 
     };
 
-    int ret = jvmData.env->RegisterNatives(jvmData.clazz, methods, 5);
+    int ret = jvmData.env->RegisterNatives(jvmData.clazz, methods, 4);
     if(ret < 0) {
         if( jvmData.env->ExceptionOccurred() ) {
             jvmData.env->ExceptionDescribe();
@@ -195,116 +194,8 @@ void distributeVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobject subVDICo
     }
 }
 
-void distributeCompressedVDIs(JNIEnv *e, jobject clazzObject, jobject compressedSubVDICol, jobject compressedSubVDIDepth, jintArray colorLimits, jintArray depthLimits , jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer) {
-    std::cout<<"In distribute Compressed VDIs function. Comm size is "<<commSize<<std::endl;
-
-    jint *colLimits = e->GetIntArrayElements(colorLimits, NULL);
-    jint *depLimits = e->GetIntArrayElements(depthLimits, NULL);
-
-
-    //first send the limits to each process
-    int colorLimitsRecv[commSize];
-    int depthLimitsRecv[commSize];
-
-    MPI_Alltoall(colLimits, 1, MPI_INT, colorLimitsRecv, 1, MPI_INT, MPI_COMM_WORLD);
-    MPI_Alltoall(depLimits, 1, MPI_INT, depthLimitsRecv, 1, MPI_INT, MPI_COMM_WORLD);
-
-    //sync all processes
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    void *ptrCol = e->GetDirectBufferAddress(compressedSubVDICol);
-    void *ptrDepth = e->GetDirectBufferAddress(compressedSubVDIDepth);
-
-    void * recvBufCol;
-    recvBufCol = reinterpret_cast<void *>(colPointer);
-
-    if(recvBufCol == nullptr) {
-        std::cout<<"allocating color buffer in distributeVDIs"<<std::endl;
-        int sum = 0;
-        for( int i = 0 ; i < commSize ; i++) {
-            sum += colorLimitsRecv[i];
-        }
-        recvBufCol = malloc(sum);
-    }
-
-    void * recvBufDepth;
-    recvBufDepth = reinterpret_cast<void *>(depthPointer);
-    if(recvBufDepth == nullptr) {
-        std::cout<<"allocating depth buffer in distributeVDIs"<<std::endl;
-        int sum = 0;
-        for( int i = 0 ; i < commSize ; i++) {
-            sum += depthLimitsRecv[i];
-        }
-        recvBufDepth = malloc(sum);
-    }
-
-    //set up the AllToAllv
-    int displacementSendSumColor = 0;
-    int displacementSendSumDepth = 0;
-    int displacementSendColor[commSize];
-    int displacementSendDepth[commSize];
-
-    int displacementRecvSumColor = 0;
-    int displacementRecvSumDepth = 0;
-    int displacementRecvColor[commSize];
-    int displacementRecvDepth[commSize];
-
-    for( int i = 0 ; i < commSize ; i ++){
-        displacementSendColor[i] = displacementSendSumColor;
-        displacementSendDepth[i] = displacementSendSumDepth;
-        displacementSendSumColor += colLimits[i];
-        displacementSendSumDepth += depLimits[i];
-
-        displacementRecvColor[i] = displacementRecvSumColor;
-        displacementRecvDepth[i] = displacementRecvSumDepth;
-        displacementRecvSumColor += colorLimitsRecv[i];
-        displacementRecvSumDepth += depthLimitsRecv[i];
-    }
-
-    auto * renComm = reinterpret_cast<MPI_Comm *>(mpiPointer);
-
-    std::cout<<"Starting all to all with Compression"<<std::endl;
-
-    MPI_Alltoallv(ptrCol, colLimits, displacementSendColor,MPI_BYTE, recvBufCol, colorLimitsRecv, displacementRecvColor,MPI_BYTE, MPI_COMM_WORLD);
-
-    std::cout<<"Finished Color all to all"<<std::endl;
-
-    MPI_Alltoallv(ptrDepth, depLimits, displacementSendDepth, MPI_BYTE, recvBufDepth, depthLimitsRecv, displacementRecvDepth,  MPI_BYTE, MPI_COMM_WORLD);
-
-    auto endAllToAll = std::chrono::high_resolution_clock::now();
-
-    printf("Finished both alltoalls with Compression\n");
-
-    jclass clazz = e->GetObjectClass(clazzObject);
-    jmethodID compositeMethod = e->GetMethodID(clazz, "decompressAndUploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;[I[I)V");
-
-    jobject bbCol = e->NewDirectByteBuffer(recvBufCol, displacementRecvSumColor);
-
-    jobject bbDepth = e->NewDirectByteBuffer( recvBufDepth, displacementRecvSumDepth);
-
-    jintArray javaColorLimits = e->NewIntArray(commSize);
-    e->SetIntArrayRegion(javaColorLimits, 0, commSize, colorLimitsRecv);
-
-    jintArray javaDepthLimits = e->NewIntArray(commSize);
-    e->SetIntArrayRegion(javaDepthLimits, 0, commSize, depthLimitsRecv);
-
-
-    if(e->ExceptionOccurred()) {
-        e->ExceptionDescribe();
-        e->ExceptionClear();
-    }
-
-    std::cout<<"Finished distributing the VDIs. Calling the decompression Composite method now!"<<std::endl;
-
-    e->CallVoidMethod(clazzObject, compositeMethod, bbCol, bbDepth, javaColorLimits, javaDepthLimits);
-    if(e->ExceptionOccurred()) {
-        e->ExceptionDescribe();
-        e->ExceptionClear();
-    }
-}
-
-
-void distributeCompressedVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobject compressedSubVDICol, jobject compressedSubVDIDepth, jintArray colorLimits, jintArray depthLimits , jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer, jint rank, jint iteration) {
+// isBenchmark, rank & iteration don't need to be set -> results in no benchmark
+void distributeVDIsWithVariableLength(JNIEnv *e, jobject clazzObject, jobject colorVDI, jobject depthVDI, jintArray colorLimits, jintArray depthLimits , jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer, jboolean isBenchmark, jint rank , jint iteration ) {
     std::cout<<"In distribute Compressed VDIs (Benchmark) function. Comm size is "<<commSize<<std::endl;
 
     auto beginAllToAllLimits = std::chrono::high_resolution_clock::now();
@@ -321,20 +212,20 @@ void distributeCompressedVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobjec
 
     auto endAllToAllLimits = std::chrono::high_resolution_clock::now();
 
-    auto elapsed_AllToAllLimits = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAllLimits - beginAllToAllLimits);
-    std::cout << "AllToAll Limits took in seconds: #ALLLIM:"<< rank << ":" << iteration << ":" << elapsed_AllToAllLimits.count() * 1e-9 << "#" << std::endl;
+    if(isBenchmark){
+        auto elapsed_AllToAllLimits = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAllLimits - beginAllToAllLimits);
+        std::cout << "AllToAll Limits took in seconds: #ALLLIM:"<< rank << ":" << iteration << ":" << elapsed_AllToAllLimits.count() * 1e-9 << "#" << std::endl;
+    }
 
     //sync all processes
-    // for measuring each call / not so good for whole program
     MPI_Barrier(MPI_COMM_WORLD);
 
     std::cout<<"Starting all to all with Compression"<<std::endl;
 
-
     auto beginAllToAll = std::chrono::high_resolution_clock::now();
 
-    void *ptrCol = e->GetDirectBufferAddress(compressedSubVDICol);
-    void *ptrDepth = e->GetDirectBufferAddress(compressedSubVDIDepth);
+    void *ptrCol = e->GetDirectBufferAddress(colorVDI);
+    void *ptrDepth = e->GetDirectBufferAddress(depthVDI);
 
     void * recvBufCol;
     recvBufCol = reinterpret_cast<void *>(colPointer);
@@ -390,13 +281,15 @@ void distributeCompressedVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobjec
 
     auto endAllToAll = std::chrono::high_resolution_clock::now();
 
-    auto elapsed_AllToAll = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAll - beginAllToAll);
-    std::cout << "AllToAll Values took in seconds: #ALLVAL:"<< rank << ":" << iteration << ":" << elapsed_AllToAll.count() * 1e-9 << "#"<< std::endl;
+    if(isBenchmark){
+        auto elapsed_AllToAll = std::chrono::duration_cast<std::chrono::nanoseconds>(endAllToAll - beginAllToAll);
+        std::cout << "AllToAll Values took in seconds: #ALLVAL:"<< rank << ":" << iteration << ":" << elapsed_AllToAll.count() * 1e-9 << "#"<< std::endl;
+    }
 
     printf("Finished both alltoalls with Compression\n");
 
     jclass clazz = e->GetObjectClass(clazzObject);
-    jmethodID compositeMethod = e->GetMethodID(clazz, "decompressAndUploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;[I[I)V");
+    jmethodID compositeMethod = e->GetMethodID(clazz, "handleReceivedBuffersAndUploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;[I[I)V");
 
     jobject bbCol = e->NewDirectByteBuffer(recvBufCol, displacementRecvSumColor);
 
@@ -504,7 +397,5 @@ void setProgramSettings(JVMData jvmData, std::string dataset, bool withCompressi
     jboolean jBenchmarkValues = benchmarkValues;
     jfieldID benchmarkValuesField = jvmData.env->GetFieldID(jvmData.clazz, "isBenchmark", "Z");
     jvmData.env->SetBooleanField(jvmData.obj, benchmarkValuesField, jBenchmarkValues);
-
-
 
 }

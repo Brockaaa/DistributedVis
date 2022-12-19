@@ -78,6 +78,8 @@ int main() {
     std::string filePath = basePath + dataset + "_" + std::to_string(num_processes) + "_" + std::to_string(rank)
                            + "SubVDI4_ndc_";
 
+    std::cerr<< "Trying to open " << filePath << std::endl;
+
     std::ifstream colorFile( filePath + "col", std::ios::in | std::ios::binary);
     std::ifstream depthFile( filePath + "depth", std::ios::in | std::ios::binary);
 

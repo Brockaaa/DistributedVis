@@ -403,7 +403,7 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
 
     dataset += "_" + std::to_string(commSize) + "_" + std::to_string(myRank);
 
-    std::string basePath = "/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/finals";
+    std::string basePath = "/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/finals/";
 
     if(myRank == 0) {
 //        //send or store the VDI

@@ -75,8 +75,13 @@ int main() {
 
     std::string basePath = "/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/vdi_dumps/";
 
+//    std::string filePath = basePath + dataset + "_" + std::to_string(num_processes) + "_" + std::to_string(rank)
+//                           + "SubVDI4_ndc_";
+
     std::string filePath = basePath + dataset + "_" + std::to_string(num_processes) + "_" + std::to_string(rank)
-                           + "SubVDI4_ndc_";
+                           + "SubVDI_ "+ std::to_string(windowWidth)+"_" + std::to_string(windowHeight)+"_" + std::to_string(numSupersegments)+"_4_ndc_";
+    //basePath + "${dataset}SubVDI_${windowWidth}_${windowHeight}_${maxSupersegments}_0_${cnt_sub}_ndc_depth")
+    //Kingsnake_4_3SubVDI_1280_720_20_0_52_ndc_col
 
     std::cerr<< "Trying to open " << filePath << std::endl;
 

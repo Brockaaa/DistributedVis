@@ -1,23 +1,7 @@
 #set(JAVA_HOME "/usr/lib/jvm/adoptopenjdk-11-hotspot-amd64/")
 
-set(JAVA_HOME "/Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home")
-set(JAVA_INCLUDE_PATH "${JAVA_HOME}/include/;${JAVA_HOME}/include/darwin")
-set(JAVA_AWT_INCLUDE_PATH "${JAVA_HOME}/include/;${JAVA_HOME}/include/darwin")
-SET(JAVA_INCLUDE_PATH2 "${JAVA_HOME}/include/;${JAVA_HOME}/include/darwin")
-SET(JNI_INCLUDE_DIRS "${JAVA_HOME}/include/;${JAVA_HOME}/include/darwin")
-
-
-
-
-
-
-
 find_package(Java)
 find_package(JNI)
-
-SET(JNI_LIBRARIES "${JAVA_HOME}/lib/libjawt.dylib;${JAVA_HOME}/lib/server/libjvm.dylib")
-
-message("JNI_LIBRARIES : ${JNI_LIBRARIES})")
 
 find_package(MPI)
 

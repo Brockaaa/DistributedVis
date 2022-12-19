@@ -57,10 +57,10 @@ RM = /software/haswell/CMake/3.20.1-GCCcore-10.3.0/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/DistributedVis
+CMAKE_SOURCE_DIR = /beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/DistributedVis
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/DistributedVis/build
+CMAKE_BINARY_DIR = /beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/DistributedVis/build
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ edit_cache/fast: edit_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/DistributedVis/build/CMakeFiles /scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/DistributedVis/build//CMakeFiles/progress.marks
+	$(CMAKE_COMMAND) -E cmake_progress_start /beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/DistributedVis/build/CMakeFiles /beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/DistributedVis/build//CMakeFiles/progress.marks
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start /scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/DistributedVis/build/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/DistributedVis/build/CMakeFiles 0
 .PHONY : all
 
 # The main clean target

@@ -175,7 +175,7 @@ void distributeVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobject subVDICo
     std::cout << "AllToAll Values took in seconds: #ALLVAL:"<< rank << ":" << iteration << ":" << elapsed_AllToAll.count() * 1e-9 << "#"<< std::endl;
 
 
-    printf("Finished both alltoalls\n");
+    printf("Finished both alltoalls \n");
 
     jclass clazz = e->GetObjectClass(clazzObject);
     jmethodID compositeMethod = e->GetMethodID(clazz, "uploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)V");

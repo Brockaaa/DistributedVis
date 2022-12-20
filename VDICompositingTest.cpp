@@ -15,7 +15,7 @@ int main() {
     const bool isCluster = true;
 
     // settings
-    const bool withCompression = true;
+    const bool withCompression = false;
     const bool benchmarkValues = true;
 
     int iterations = 8;

@@ -79,7 +79,7 @@ int main() {
 //                           + "SubVDI4_ndc_";
 
     std::string filePath = basePath + dataset + "_" + std::to_string(num_processes) + "_" + std::to_string(rank)
-                           + "SubVDI_"+ std::to_string(windowWidth)+"_" + std::to_string(windowHeight)+"_" + std::to_string(numSupersegments)+"_0_4_ndc_";
+                           + "SubVDI_"+ std::to_string(windowWidth)+"_" + std::to_string(windowHeight)+"_" + std::to_string(numSupersegments)+"_0_11_ndc_";
     //basePath + "${dataset}SubVDI_${windowWidth}_${windowHeight}_${maxSupersegments}_0_${cnt_sub}_ndc_depth")
     //Kingsnake_4_3SubVDI_1280_720_20_0_4_ndc_
 

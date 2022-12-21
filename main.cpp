@@ -95,7 +95,7 @@ int main() {
         setDatasetParams(jvmData, dataset, pixelToWorld, volume_dimensions);
         setMPIParams(jvmData, rank, node_rank, num_processes);
 
-        setProgramSettings(jvmData, false , false);
+        setProgramSettings(jvmData, true , true);
 
         std::thread render(&doRender, jvmData);
 

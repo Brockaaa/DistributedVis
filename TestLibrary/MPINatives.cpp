@@ -134,7 +134,7 @@ void distributeVDIs(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject s
 
     std::cout<<"Finished distributing the VDIs. Calling the Composite method now!"<<std::endl;
 
-    e->CallVoidMethod(clazzObject, compositeMethod, bbCol, bbDepth);
+    e->CallVoidMethod(clazzObject, compositeMethod, bbCol, bbDepth, nullptr, nullptr);
     if(e->ExceptionOccurred()) {
         e->ExceptionDescribe();
         e->ExceptionClear();

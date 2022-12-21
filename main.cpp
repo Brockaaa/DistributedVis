@@ -95,6 +95,8 @@ int main() {
         setDatasetParams(jvmData, dataset, pixelToWorld, volume_dimensions);
         setMPIParams(jvmData, rank, node_rank, num_processes);
 
+        setProgramSettings(jvmData, true , true);
+
         std::thread render(&doRender, jvmData);
 
         int slices_per_process[num_processes];

@@ -441,11 +441,11 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
 void setProgramSettings(JVMData jvmData, bool withCompression, bool benchmarkValues){
 
     jboolean jWithCompression = withCompression;
-    jfieldID withCompressionField = jvmData.env->GetFieldID(jvmData.clazz, "isCompressed", "Z");
+    jfieldID withCompressionField = jvmData.env->GetFieldID(jvmData.clazz, "withCompression", "Z");
     jvmData.env->SetBooleanField(jvmData.obj, withCompressionField, jWithCompression);
 
     jboolean jBenchmarkValues = benchmarkValues;
-    jfieldID benchmarkValuesField = jvmData.env->GetFieldID(jvmData.clazz, "isBenchmark", "Z");
+    jfieldID benchmarkValuesField = jvmData.env->GetFieldID(jvmData.clazz, "benchmarkCompression", "Z");
     jvmData.env->SetBooleanField(jvmData.obj, benchmarkValuesField, jBenchmarkValues);
 
 }

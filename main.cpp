@@ -56,7 +56,7 @@ int main() {
     int provided;
     MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
 
-    std::cout << "Got MPI thread level: " << provided << std::endl;
+    std::cout << "Got MPI threadr level: " << provided << std::endl;
 //
 //    MPI_Init(NULL, NULL);
     int rank;

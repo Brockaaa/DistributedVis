@@ -48,7 +48,7 @@ int * getVolumeDims(const std::string& path) {
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
-    std::string dataset = "Kingsnake";
+    std::string dataset = "Isotropic";
     const bool is16bit = false;
     bool generateVDIs = true;
     bool isCluster = true;

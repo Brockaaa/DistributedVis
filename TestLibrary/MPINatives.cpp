@@ -702,18 +702,14 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
     begin_whole_vdi = std::chrono::high_resolution_clock::now();
 }
 
-void setProgramSettings(JVMData jvmData, std::string dataset, bool withCompression, bool benchmarkValues){
-
-    jstring jdataset = jvmData.env->NewStringUTF(dataset.c_str());
-    jfieldID datasetField = jvmData.env->GetFieldID(jvmData.clazz, "dataset", "Ljava/lang/String;");
-    jvmData.env->SetObjectField(jvmData.obj, datasetField, jdataset);
+void setProgramSettings(JVMData jvmData, bool withCompression, bool benchmarkValues){
 
     jboolean jWithCompression = withCompression;
-    jfieldID withCompressionField = jvmData.env->GetFieldID(jvmData.clazz, "isCompressed", "Z");
+    jfieldID withCompressionField = jvmData.env->GetFieldID(jvmData.clazz, "withCompression", "Z");
     jvmData.env->SetBooleanField(jvmData.obj, withCompressionField, jWithCompression);
 
     jboolean jBenchmarkValues = benchmarkValues;
-    jfieldID benchmarkValuesField = jvmData.env->GetFieldID(jvmData.clazz, "isBenchmark", "Z");
+    jfieldID benchmarkValuesField = jvmData.env->GetFieldID(jvmData.clazz, "benchmarkCompression", "Z");
     jvmData.env->SetBooleanField(jvmData.obj, benchmarkValuesField, jBenchmarkValues);
 
 }

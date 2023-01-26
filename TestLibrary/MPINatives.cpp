@@ -747,7 +747,7 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
         std::cout<< "Number of gathers: " << num_gather << " average gather time so far: " << average_gather
                 << " average whole compositing time so far: " << average_whole_compositing <<std::endl;
     }
-#endif
+
 
     end_whole_vdi = std::chrono::high_resolution_clock::now();
 
@@ -775,6 +775,7 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
         std::cout<< "Number of VDIs generated: " << num_whole_vdi << " average time so far: " << average_overall << std::endl;
     }
 
+#endif
 
     std::string dataset = datasetName;
 

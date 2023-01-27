@@ -2,6 +2,7 @@
 #include "TestLiibrary.hpp"
 #include "MPINatives.hpp"
 #include "ManageRendering.hpp"
+#include "VDIParams.hpp"
 #include <mpi.h>
 #include <thread>
 #include <fstream>
@@ -48,15 +49,15 @@ int * getVolumeDims(const std::string& path) {
 int main() {
     std::cout << "Hello, World!" << std::endl;
 
-    std::string dataset = "Kingsnake";
-    const bool is16bit = false;
-    bool generateVDIs = true;
-    bool isCluster = true;
+    std::string dataset = datasetName;
+    const bool is16bit = dataset16bit;
+    bool generateVDIs = false;
+    bool isCluster = false;
 
     int provided;
     MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
 
-    std::cout << "Got MPI threadr level: " << provided << std::endl;
+    std::cout << "Got MPI thread level: " << provided << std::endl;
 //
 //    MPI_Init(NULL, NULL);
     int rank;
@@ -90,13 +91,10 @@ int main() {
     if(true) {
 
 
-        int * volume_dimensions = getVolumeDims("/scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/Datasets/" + dataset + "/");
+        int * volume_dimensions = getVolumeDims("/beegfs/ws/1/argupta-vdi_generation/Datasets/"+ dataset + "/Part1");
         float pixelToWorld = 3.84f / (float)volume_dimensions[0]; //empirical
         setDatasetParams(jvmData, dataset, pixelToWorld, volume_dimensions);
         setMPIParams(jvmData, rank, node_rank, num_processes);
-
-        bool val = false;
-        setProgramSettings(jvmData, val, val);
 
         std::thread render(&doRender, jvmData);
 
@@ -128,7 +126,7 @@ int main() {
 
         prev_slices = start_slice[rank];
 
-        std::ifstream volumeFile ("/beegfs/ws/1/argupta-vdi_generation/Datasets/" + dataset + "/" + dataset + ".raw", std::ios::in | std::ios::binary);
+        std::ifstream volumeFile ("/beegfs/ws/1/argupta-vdi_generation/Datasets/" + dataset + "/Part1/" + dataset + ".raw", std::ios::in | std::ios::binary);
         if(!volumeFile.is_open()) {
             std::cerr<< "Could not open the volume file! " << std::endl;
         }
@@ -167,7 +165,7 @@ int main() {
 
         std::cout<<"Back after calling do Render" <<std::endl;
 
-        sleep(180);
+        sleep(1000);
         std::cout<<"Calling stopRendering!" <<std::endl;
         stopRendering(jvmData);
 

@@ -51,8 +51,8 @@ int main() {
 
     std::string dataset = datasetName;
     const bool is16bit = dataset16bit;
-    bool generateVDIs = false;
-    bool isCluster = false;
+    bool generateVDIs = true;
+    bool isCluster = true;
 
     int provided;
     MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);

@@ -822,7 +822,7 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
             {
                 //fill the file out of order
                 for(int i = 0; i < commSize; i++){
-                    int onePart = windowWidth * windowHeight * numOutputSupsegs * 4 * 4 / commSize;
+                    int onePart = windowWidth * windowHeight * numOutputSupsegs * 4  / commSize;
                     int offset;
                     switch(i){
                         case 0:
@@ -838,8 +838,8 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
                             offset = 3 * onePart;
                             break;
                     }
-                    b_stream.write(static_cast<const char *>(gather_recv_color) + offset, windowHeight * windowWidth * numOutputSupsegs * 4 ); // divided by 4
-                    b_streamDepth.write(static_cast<const char *>(gather_recv_depth) + offset, windowHeight * windowWidth * numOutputSupsegs * 2);
+                    b_stream.write(static_cast<const char *>(gather_recv_color) + offset * 4, windowHeight * windowWidth * numOutputSupsegs * 4 ); // divided by 4
+                    b_streamDepth.write(static_cast<const char *>(gather_recv_depth) + offset * 2, windowHeight * windowWidth * numOutputSupsegs * 2);
 
                 }
 

@@ -829,10 +829,10 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
                             offset = 0;
                             break;
                         case 1:
-                            offset = 2 * onePart;
+                            offset = 1 * onePart;
                             break;
                         case 2:
-                            offset = onePart;
+                            offset =  2 * onePart;
                             break;
                         case 3:
                             offset = 3 * onePart;

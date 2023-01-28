@@ -564,7 +564,7 @@ void distributeVDIsWithVariableLength(JNIEnv *e, jobject clazzObject, jobject co
 
 void distributeVDIsWithMultipleCommunicators(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject subVDIDepth, jint color, jint divisor, jint rank, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer){
 #if VERBOSE
-    std::cout<<"In distribute VDIs with multiple Communictors function. Comm size is "<<commSize<<" with color "<<color<<std::endl;
+    std::cout<<"In distribute VDIs with multiple Communictors function. Comm size is "<<commSize<<" with color "<<color<<" and divisor "<<divisor<<std::endl;
 #endif
 
     void *ptrCol = e->GetDirectBufferAddress(subVDICol);

@@ -680,23 +680,6 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
     std::cout<<"In Gather function " <<std::endl;
 #endif
 
-    int newRank = 0;
-    //convert the root
-    switch (root) {
-        case 0:
-            newRank = 0;
-            break;
-        case 1:
-            newRank = 2;
-            break;
-        case 2:
-            newRank = 1;
-            break;
-        case 3:
-            newRank = 3;
-            break;
-    }
-
     void *ptrCol = e->GetDirectBufferAddress(compositedVDIColor);
     void *ptrDepth = e->GetDirectBufferAddress(compositedVDIDepth);
 
@@ -721,9 +704,9 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
     begin = std::chrono::high_resolution_clock::now();
 #endif
 
-    MPI_Gather(ptrCol, windowWidth * windowHeight * numOutputSupsegs * 4 * 4 / commSize, MPI_BYTE, gather_recv_color, windowWidth * windowHeight * numOutputSupsegs * 4 * 4 / commSize, MPI_BYTE, newRank, MPI_COMM_WORLD);
+    MPI_Gather(ptrCol, windowWidth * windowHeight * numOutputSupsegs * 4 * 4 / commSize, MPI_BYTE, gather_recv_color, windowWidth * windowHeight * numOutputSupsegs * 4 * 4 / commSize, MPI_BYTE, root, MPI_COMM_WORLD);
 
-    MPI_Gather(ptrDepth, windowWidth  * windowHeight * numOutputSupsegs * 4 * 2 / commSize, MPI_BYTE,  gather_recv_depth, windowWidth * windowHeight * numOutputSupsegs * 4 * 2 / commSize, MPI_BYTE, newRank, MPI_COMM_WORLD);
+    MPI_Gather(ptrDepth, windowWidth  * windowHeight * numOutputSupsegs * 4 * 2 / commSize, MPI_BYTE,  gather_recv_depth, windowWidth * windowHeight * numOutputSupsegs * 4 * 2 / commSize, MPI_BYTE, root, MPI_COMM_WORLD);
 
 #if PROFILING
     end = std::chrono::high_resolution_clock::now();
@@ -829,10 +812,10 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
                             offset = 0;
                             break;
                         case 1:
-                            offset = 1 * onePart;
+                            offset = 2 * onePart;
                             break;
                         case 2:
-                            offset =  2 * onePart;
+                            offset =  1 * onePart;
                             break;
                         case 3:
                             offset = 3 * onePart;

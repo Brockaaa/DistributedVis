@@ -820,8 +820,28 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
 
             if (b_stream)
             {
-                b_stream.write(static_cast<const char *>(gather_recv_color), windowHeight * windowWidth * numOutputSupsegs * 4 * 4);
-                b_streamDepth.write(static_cast<const char *>(gather_recv_depth), windowHeight * windowWidth * numOutputSupsegs * 4 * 2);
+                //fill the file out of order
+                for(int i = 0; i < commSize; i++){
+                    int onePart = windowWidth * windowHeight * numOutputSupsegs * 4 * 4 / commSize;
+                    int offset;
+                    switch(i){
+                        case 0:
+                            offset = 0;
+                            break;
+                        case 1:
+                            offset = 2 * onePart;
+                            break;
+                        case 2:
+                            offset = onePart;
+                            break;
+                        case 3:
+                            offset = 3 * onePart;
+                            break;
+                    }
+                    b_stream.write(static_cast<const char *>(gather_recv_color) + offset, windowHeight * windowWidth * numOutputSupsegs * 4 * 4);
+                    b_streamDepth.write(static_cast<const char *>(gather_recv_depth) + offset, windowHeight * windowWidth * numOutputSupsegs * 4 * 2);
+
+                }
 
                 if (b_stream.good()) {
                     std::cout<<"Writing was successful"<<std::endl;

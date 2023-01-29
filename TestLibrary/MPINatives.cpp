@@ -653,11 +653,11 @@ void distributeVDIsWithMultipleCommunicators(JNIEnv *e, jobject clazzObject, job
     jclass clazz = e->GetObjectClass(clazzObject);
     jmethodID compositeMethod = e->GetMethodID(clazz, "uploadForCompositing", "(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;)V");
 
-    jobject bbCol = e->NewDirectByteBuffer(recvBufCol, windowHeight * windowWidth * numSupersegments * 4 * 4);
+    jobject bbCol = e->NewDirectByteBuffer(recvBufCol, windowHeight * windowWidth * numSupersegments * 4 * 4 / (divisor / 2));
 
     jobject bbDepth;
 
-    bbDepth = e->NewDirectByteBuffer( recvBufDepth, windowHeight * windowWidth * numSupersegments  * 2 * 4);
+    bbDepth = e->NewDirectByteBuffer( recvBufDepth, windowHeight * windowWidth * numSupersegments  * 2 * 4 / (divisor / 2));
 
     if(e->ExceptionOccurred()) {
         e->ExceptionDescribe();

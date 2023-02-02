@@ -14,6 +14,7 @@ void distributeVDIsForBenchmark(JNIEnv *e, jobject clazzObject, jobject subVDICo
 void distributeVDIsWithVariableLength(JNIEnv *e, jobject clazzObject, jobject colorVDI, jobject depthVDI, jintArray colorLimits, jintArray depthLimits , jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer, jboolean isBenchmark = false, jint rank = 0, jint iteration = 0);
 void distributeVDIsWithMultipleCommunicators(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject subVDIDepth, jint color, jint divisor, jint rank, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer);
 void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIColor, jobject compositedVDIDepth, jint compositedVDILen, jint root, jint myRank, jint commSize, jlong colPointer, jlong depthPointer, jint viewOrig, jlong mpiPointer);
+void gatherCompositedVDIsOutOfOrder(JNIEnv *e, jobject clazzObject, jobject compositedVDIColor, jobject compositedVDIDepth, jint compositedVDILen, jintArray jOrdering, jint root, jint myRank, jint commSize, jlong colPointer, jlong depthPointer, jint vo, jlong mpiPointer);
 void setPointerAddresses(JVMData jvmData, MPI_Comm renderComm);
 void setMPIParams(JVMData jvmData , int rank, int node_rank, int commSize);
 void registerNatives(JVMData jvmData);

@@ -92,10 +92,11 @@ void registerNatives(JVMData jvmData) {
                                 { (char *)"distributeVDIsWithMultipleCommunicators", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIIIJJJ)V", (void *)&distributeVDIsWithMultipleCommunicators },
 
                                 { (char *)"gatherCompositedVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIIIJJIJ)V", (void *)&gatherCompositedVDIs },
+                                { (char *)"gatherCompositedVDIsOutOfOrder", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;I[IIIIJJIJ)V", (void *)&gatherCompositedVDIsOutOfOrder },
 
     };
 
-    int ret = jvmData.env->RegisterNatives(jvmData.clazz, methods, 5);
+    int ret = jvmData.env->RegisterNatives(jvmData.clazz, methods, 6);
     if(ret < 0) {
         if( jvmData.env->ExceptionOccurred() ) {
             jvmData.env->ExceptionDescribe();
@@ -674,6 +675,7 @@ void distributeVDIsWithMultipleCommunicators(JNIEnv *e, jobject clazzObject, job
 }
 
 
+
 void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIColor, jobject compositedVDIDepth, jint compositedVDILen, jint root, jint myRank, jint commSize, jlong colPointer, jlong depthPointer, jint vo, jlong mpiPointer) {
 
 #if VERBOSE
@@ -783,6 +785,162 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
 
     std::string basePath = "/scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/finals/";
 
+    f(myRank == 0) {
+//        //send or store the VDI
+
+        if(!benchmarking) {
+
+            std::cout<<"Writing the final gathered VDI now"<<std::endl;
+
+            std::string filename = basePath + dataset + "FinalVDI_" + std::to_string(windowWidth) + "_" + std::to_string(windowHeight) + "_" + std::to_string(numOutputSupsegs)
+                                   + "_" + std::to_string(vo) + "_" + std::to_string(count) + "_ndc";
+
+            std::string filenameCol = filename + "_col";
+
+            std::ofstream b_stream(filenameCol.c_str(),
+                                   std::fstream::out | std::fstream::binary);
+            std::string filenameDepth = filename + "_depth";
+            std::ofstream b_streamDepth(filenameDepth.c_str(),
+                                        std::fstream::out | std::fstream::binary);
+
+            if (b_stream)
+            {
+                b_stream.write(static_cast<const char *>(gather_recv_color), windowHeight * windowWidth * numOutputSupsegs * 4 * 4);
+                b_streamDepth.write(static_cast<const char *>(gather_recv_depth), windowHeight * windowWidth * numOutputSupsegs * 4 * 2);
+
+                if (b_stream.good()) {
+                    std::cout<<"Writing was successful"<<std::endl;
+                }
+            }
+            count++;
+        }
+    }
+    begin_whole_vdi = std::chrono::high_resolution_clock::now();
+}
+
+void gatherCompositedVDIsOutOfOrder(JNIEnv *e, jobject clazzObject, jobject compositedVDIColor, jobject compositedVDIDepth, jint compositedVDILen, jintArray jOrdering, jint root, jint myRank, jint commSize, jlong colPointer, jlong depthPointer, jint vo, jlong mpiPointer) {
+
+#if VERBOSE
+    std::cout<<"In Gather function " <<std::endl;
+#endif
+
+    void *ptrCol = e->GetDirectBufferAddress(compositedVDIColor);
+    void *ptrDepth = e->GetDirectBufferAddress(compositedVDIDepth);
+
+    const int * ordering = e->GetIntArrayElements(jOrdering, NULL);
+
+    int colorCounts [commSize];
+    int depthCounts [commSize];
+    int colorDisplacements [commSize];
+    int depthDisplacements [commSize];
+
+    for(int i = 0 ; i < commSize ; i++){
+        colorCounts[i] = compositedVDILen * 4;
+        depthCounts[i] = compositedVDILen * 2;
+        colorDisplacements[i] = compositedVDILen * 4 * ordering[i];
+        depthDisplacements[i] = compositedVDILen * 2 * ordering[i];
+    }
+
+    void * gather_recv_color = reinterpret_cast<void *>(colPointer);
+    void * gather_recv_depth = reinterpret_cast<void *>(depthPointer);
+
+    if (myRank == 0) {
+        if(gather_recv_color == nullptr) {
+            std::cout<<"allocating color receive buffer in gather"<<std::endl;
+            gather_recv_color = malloc(compositedVDILen * commSize * 4);
+        }
+        if(gather_recv_depth == nullptr) {
+            std::cout<<"allocating depth receive buffer in gather"<<std::endl;
+            gather_recv_depth = malloc(compositedVDILen * commSize * 2);
+        }
+    }
+
+    auto * renComm = reinterpret_cast<MPI_Comm *>(mpiPointer);
+
+#if PROFILING
+    MPI_Barrier(MPI_COMM_WORLD);
+    begin = std::chrono::high_resolution_clock::now();
+#endif
+
+    MPI_Gatherv(ptrCol, compositedVDILen * 4, MPI_BYTE, gather_recv_color, colorCounts, colorDisplacements, MPI_BYTE, root, MPI_COMM_WORLD);
+
+    MPI_Gatherv(ptrDepth, compositedVDILen * 2, MPI_BYTE,  gather_recv_depth, depthCounts, depthDisplacements , MPI_BYTE, root, MPI_COMM_WORLD);
+
+#if PROFILING
+    end = std::chrono::high_resolution_clock::now();
+    end_whole_compositing = std::chrono::high_resolution_clock::now();
+
+    auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin);
+
+    double local_gather = (elapsed.count()) * 1e-9;
+
+    std::cout << "Gather time at process " << myRank << " was " << local_gather << std::endl;
+
+    double global_sum;
+
+    MPI_Reduce(&local_gather, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    double global_gather = global_sum / commSize;
+
+    auto elapsed_whole_compositing = std::chrono::duration_cast<std::chrono::nanoseconds>(end_whole_compositing - begin_whole_compositing);
+
+    double local_whole_compositing = (elapsed_whole_compositing.count()) * 1e-9;
+
+    std::cout << "Whole compositing time at process " << myRank << " was " << local_whole_compositing << std::endl;
+
+    MPI_Reduce(&local_whole_compositing, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    double global_whole_compositing = global_sum / commSize;
+
+    if(num_gather > warm_up_iterations) {
+        total_gather += global_gather;
+        total_whole_compositing += global_whole_compositing;
+    }
+
+    num_gather++;
+    if(((num_gather % 50) == 0) && (myRank == 0)) {
+        int iterations = num_gather - warm_up_iterations;
+        double average_gather = total_gather / (double)iterations;
+        double average_whole_compositing = total_whole_compositing / (double)iterations;
+        std::cout<< "Number of gathers: " << num_gather << " average gather time so far: " << average_gather
+                << " average whole compositing time so far: " << average_whole_compositing <<std::endl;
+    }
+
+
+    end_whole_vdi = std::chrono::high_resolution_clock::now();
+
+    auto elapsed_overall = std::chrono::duration_cast<std::chrono::nanoseconds>(end_whole_vdi - begin_whole_vdi);
+
+    double local_overall = elapsed_overall.count() * 1e-9;
+
+    std::cout << "Whole VDI generation time at process " << myRank << " was " << local_overall << std::endl;
+
+    global_sum = 0;
+    MPI_Reduce(&local_overall, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
+
+    double global_overall = global_sum / commSize;
+
+    if(num_whole_vdi > warm_up_iterations) {
+        total_whole_vdi += global_overall;
+    }
+
+    num_whole_vdi++;
+
+    if(((num_whole_vdi % 50)==0) && (myRank == 0)) {
+        int iterations = num_whole_vdi - warm_up_iterations;
+        double average_overall = total_whole_vdi / (double) iterations;
+
+        std::cout<< "Number of VDIs generated: " << num_whole_vdi << " average time so far: " << average_overall << std::endl;
+    }
+
+#endif
+
+    std::string dataset = datasetName;
+
+    dataset += "_" + std::to_string(commSize) + "_" + std::to_string(myRank);
+
+    std::string basePath = "/scratch/ws/1/anbr392b-test-workspace/argupta-vdi_generation/finals/";
+
     if(myRank == 0) {
 //        //send or store the VDI
 
@@ -803,28 +961,8 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
 
             if (b_stream)
             {
-                //fill the file out of order
-                for(int i = 0; i < commSize; i++){
-                    int onePart = windowWidth * windowHeight * numOutputSupsegs * 4  / commSize;
-                    int offset;
-                    switch(i){
-                        case 0:
-                            offset = 0;
-                            break;
-                        case 1:
-                            offset = 2 * onePart;
-                            break;
-                        case 2:
-                            offset =  1 * onePart;
-                            break;
-                        case 3:
-                            offset = 3 * onePart;
-                            break;
-                    }
-                    b_stream.write(static_cast<const char *>(gather_recv_color) + offset * 4, windowHeight * windowWidth * numOutputSupsegs * 4 * 4 / commSize);
-                    b_streamDepth.write(static_cast<const char *>(gather_recv_depth) + offset * 2, windowHeight * windowWidth * numOutputSupsegs * 2 * 4 / commSize);
-
-                }
+                b_stream.write(static_cast<const char *>(gather_recv_color), windowHeight * windowWidth * numOutputSupsegs * 4 * 4);
+                b_streamDepth.write(static_cast<const char *>(gather_recv_depth), windowHeight * windowWidth * numOutputSupsegs * 4 * 2);
 
                 if (b_stream.good()) {
                     std::cout<<"Writing was successful"<<std::endl;

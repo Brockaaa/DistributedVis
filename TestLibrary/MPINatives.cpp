@@ -785,7 +785,7 @@ void gatherCompositedVDIs(JNIEnv *e, jobject clazzObject, jobject compositedVDIC
 
     std::string basePath = "/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/finals/";
 
-    f(myRank == 0) {
+    if(myRank == 0) {
 //        //send or store the VDI
 
         if(!benchmarking) {

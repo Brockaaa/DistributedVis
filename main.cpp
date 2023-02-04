@@ -60,6 +60,7 @@ int main() {
     std::cout << "Got MPI thread level: " << provided << std::endl;
 //
 //    MPI_Init(NULL, NULL);
+    std::cout << "test"<< std::endl;
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -83,7 +84,7 @@ int main() {
 
     JVMData jvmData = setupJVM(isCluster, "DistributedVolumes");
 
-    std::cout << "Registered Natives"<< std::endl;
+
 
     registerNatives(jvmData);
 

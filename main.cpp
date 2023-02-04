@@ -78,7 +78,7 @@ int main() {
     int node_rank;
     MPI_Comm_rank(nodeComm,&node_rank);
 
-    std::cout << "test"<< std::endl;
+
 
     if(!isCluster) {
         node_rank = 0;
@@ -86,7 +86,7 @@ int main() {
 
     JVMData jvmData = setupJVM(isCluster, "DistributedVolumes");
 
-
+    std::cout << "test"<< std::endl;
 
     registerNatives(jvmData);
 

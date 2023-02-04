@@ -60,7 +60,7 @@ int main() {
     std::cout << "Got MPI thread level: " << provided << std::endl;
 //
 //    MPI_Init(NULL, NULL);
-    std::cout << "test"<< std::endl;
+
     int rank;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
@@ -77,6 +77,8 @@ int main() {
 
     int node_rank;
     MPI_Comm_rank(nodeComm,&node_rank);
+
+    std::cout << "test"<< std::endl;
 
     if(!isCluster) {
         node_rank = 0;

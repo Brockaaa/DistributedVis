@@ -43,6 +43,7 @@ JVMData setupJVM(bool isCluster, std::string className) {
 //    options[4].optionString = (char *)
 //                                      "-Dscenery.LogLevel=debug";
 
+    std::cout << "Moinsen" << isCluster << std::endl;
     if(isCluster) {
         options[5].optionString = (char *)
                 "-Dorg.lwjgl.system.SharedLibraryExtractPath=/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation";
@@ -54,6 +55,8 @@ JVMData setupJVM(bool isCluster, std::string className) {
         options[6].optionString = (char *)
                 "-Dorg.lwjgl.librarypath=/tmp/";
     }
+
+    std::cout << "Moinsen" << options[6].optionString << std::endl;
 
 
 

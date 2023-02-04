@@ -86,8 +86,6 @@ int main() {
 
     JVMData jvmData = setupJVM(isCluster, "DistributedVolumes");
 
-    std::cout << "test"<< std::endl;
-
     registerNatives(jvmData);
 
     setPointerAddresses(jvmData, MPI_COMM_WORLD);

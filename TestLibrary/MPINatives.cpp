@@ -834,12 +834,15 @@ void gatherCompositedVDIsOutOfOrder(JNIEnv *e, jobject clazzObject, jobject comp
     int colorDisplacements [commSize];
     int depthDisplacements [commSize];
 
-    for(int i = 0 ; i < commSize ; i++){
-        colorCounts[i] = compositedVDILen * 4;
-        depthCounts[i] = compositedVDILen * 2;
-        colorDisplacements[ordering[i]] = compositedVDILen * 4 * i;
-        depthDisplacements[ordering[i]] = compositedVDILen * 2 * i;
+    if(myRank == 0){
+        for(int i = 0 ; i < commSize ; i++){
+            colorCounts[i] = compositedVDILen * 4;
+            depthCounts[i] = compositedVDILen * 2;
+            colorDisplacements[ordering[i]] = compositedVDILen * 4 * i;
+            depthDisplacements[ordering[i]] = compositedVDILen * 2 * i;
+        }
     }
+
 
     void * gather_recv_color = reinterpret_cast<void *>(colPointer);
     void * gather_recv_depth = reinterpret_cast<void *>(depthPointer);

@@ -84,7 +84,7 @@ int main() {
         node_rank = 0;
     }
 
-    JVMData jvmData = setupJVM(isCluster, "DistributedVolumes");
+    JVMData jvmData = setupJVM(isCluster, "DistributedVolumes", rank);
 
     registerNatives(jvmData);
 

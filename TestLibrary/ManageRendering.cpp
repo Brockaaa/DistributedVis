@@ -1,6 +1,6 @@
 #include "ManageRendering.hpp"
 #include <dirent.h>
-#include <sstream>
+#include <string>
 
 JVMData setupJVM(bool isCluster, std::string className, int rank) {
     JVMData jvmData{};
@@ -46,12 +46,11 @@ JVMData setupJVM(bool isCluster, std::string className, int rank) {
 
     std::cout << "Moinsen" << isCluster << std::endl;
     if(isCluster) {
-            std::stringstream op5;
-            op5 << "-Dorg.lwjgl.system.SharedLibraryExtractPath=/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/lwjgl_" << std::to_string(rank);
-        options[5].optionString = (char *) op5.str().c_str();
-            std::stringstream op6;
-            op6 << "-Dorg.lwjgl.librarypath=/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/lwjgl_" << std::to_string(rank);
-        options[6].optionString = (char *) op6.str().c_str();
+
+        std::string op5 = "-Dorg.lwjgl.system.SharedLibraryExtractPath=/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/lwjgl_" + std::to_string(rank);
+        options[5].optionString = (char *) op5.c_str();
+        std::string op6 = "-Dorg.lwjgl.librarypath=/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/lwjgl_" + std::to_string(rank);
+        options[6].optionString = (char *) op6.c_str();
     } else {
         options[5].optionString = (char *)
                 "-Dorg.lwjgl.system.SharedLibraryExtractPath=/tmp/";

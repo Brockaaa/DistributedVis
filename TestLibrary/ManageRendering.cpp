@@ -1,6 +1,7 @@
 #include "ManageRendering.hpp"
 #include <dirent.h>
 #include <string>
+#include <cstring>
 
 JVMData setupJVM(bool isCluster, std::string className, int rank) {
     JVMData jvmData{};

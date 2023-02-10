@@ -9,8 +9,6 @@ JVMData setupJVM(bool isCluster, std::string className, int rank) {
     DIR *dir;
     struct dirent *ent;
     std::string classPath = "-Djava.class.path=";
-    std::string classPath2 = "-Djava.class.path=".;
-
     std::string directory = "/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/insitu_build/";
 
     if ((dir = opendir (directory.c_str())) != nullptr) {

@@ -29,10 +29,9 @@ JVMData setupJVM(bool isCluster, std::string className, int rank) {
     JavaVMInitArgs vm_args;                        // Initialization arguments
     auto *options = new JavaVMOption[7];   // JVM invocation options
 
+    // set option strings with variables (rank)
     std::string op5 = "-Dorg.lwjgl.system.SharedLibraryExtractPath=/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/lwjgl_" + std::to_string(rank);
-   // char *p5 = new char(std::strlen(op5.c_str()) + 1);
     std::string op6 = "-Dorg.lwjgl.librarypath=/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation/lwjgl_" + std::to_string(rank);
-   // char *p6 = new char(std::strlen(op6.c_str()) + 1);
 
 
     options[0].optionString = (char *)classPath.c_str();
@@ -54,17 +53,9 @@ JVMData setupJVM(bool isCluster, std::string className, int rank) {
 
     std::cout << "Moinsen" << isCluster << std::endl;
     if(isCluster) {
-
-
-       // std::strcpy(p5, op5.c_str());
         options[5].optionString = (char *) op5.c_str();
-       // std::strcpy(p6, op6.c_str());
         options[6].optionString = (char *) op6.c_str();
-
-
-//            options[5].optionString = (char *) "-Dorg.lwjgl.system.SharedLibraryExtractPath=/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation";
-//            options[6].optionString = (char *) "-Dorg.lwjgl.librarypath=/beegfs/ws/1/anbr392b-test-workspace/argupta-vdi_generation";
-    } else {
+   } else {
         options[5].optionString = (char *)
                 "-Dorg.lwjgl.system.SharedLibraryExtractPath=/tmp/";
         options[6].optionString = (char *)
@@ -85,11 +76,6 @@ JVMData setupJVM(bool isCluster, std::string className, int rank) {
     std::cout<<"Hello world"<<std::endl;
 
     delete[] options;
-   // delete[] p5;
-   // delete[] p6;
-
-
-
 
     if (rc != JNI_OK) {
         // TODO: error processing...

@@ -46,11 +46,11 @@ int * getVolumeDims(const std::string& path) {
     return volume_dimensions;
 }
 
-int main(int argc, char** argv) {
+//int main(int argc, char** argv) {
 
+int main() {
 
-
-    std::cout << "Hello, World!" << argv[1] << std::endl;
+    std::cout << "Hello, World!" << << std::endl;
 
     std::string dataset = datasetName;
     const bool is16bit = dataset16bit;

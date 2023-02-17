@@ -91,9 +91,9 @@ int main(int argc, char** argv) {
 
     registerNatives(jvmData);
 
-    if(argc > 0){
+    if(argc > 1){
         // give radices to kotlin side
-        jstring jradices = jvmData.env->NewStringUTF(argv[0]);
+        jstring jradices = jvmData.env->NewStringUTF(argv[1]);
         jfieldID radicesField = jvmData.env->GetFieldID(jvmData.clazz, "radicesString", "Ljava/lang/String;");
         jvmData.env->SetObjectField(jvmData.obj, radicesField, jradices);
     }

@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
 
 
 
-    std::cout << "Hello, World!" << argv[0] << std::endl;
+    std::cout << "Hello, World!" << argv[1] << std::endl;
 
     std::string dataset = datasetName;
     const bool is16bit = dataset16bit;

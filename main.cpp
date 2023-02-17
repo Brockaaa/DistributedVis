@@ -50,7 +50,7 @@ int * getVolumeDims(const std::string& path) {
 
 int main() {
 
-    std::cout << "Hello, World!" << << std::endl;
+    std::cout << "Hello, World!" << std::endl;
 
     std::string dataset = datasetName;
     const bool is16bit = dataset16bit;

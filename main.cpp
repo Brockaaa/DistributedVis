@@ -91,7 +91,12 @@ int main(int argc, char** argv) {
 
     registerNatives(jvmData);
 
-
+    if(argc > 0){
+        // give radices to kotlin side
+        jstring jradices = jvmData.env->NewStringUTF(argv[0]);
+        jfieldID radicesField = jvmData.env->GetFieldID(jvmData.clazz, "radicesString", "Ljava/lang/String;");
+        jvmData.env->SetObjectField(jvmData.obj, radicesField, jradices);
+    }
 
     setPointerAddresses(jvmData, MPI_COMM_WORLD);
     setVDIGeneration(jvmData, generateVDIs);

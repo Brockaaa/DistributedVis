@@ -46,11 +46,11 @@ int * getVolumeDims(const std::string& path) {
     return volume_dimensions;
 }
 
-//int main(int argc, char** argv) {
+int main(int argc, char** argv) {
 
-int main() {
 
-    std::cout << "Hello, World!" << std::endl;
+
+    std::cout << "Hello, World!" << argv[1] << std::endl;
 
     std::string dataset = datasetName;
     const bool is16bit = dataset16bit;
@@ -91,12 +91,12 @@ int main() {
 
     registerNatives(jvmData);
 
-//    if(argc > 1){
-//        // give radices to kotlin side
-//        jstring jradices = jvmData.env->NewStringUTF(argv[1]);
-//        jfieldID radicesField = jvmData.env->GetFieldID(jvmData.clazz, "radicesString", "Ljava/lang/String;");
-//        jvmData.env->SetObjectField(jvmData.obj, radicesField, jradices);
-//    }
+    if(argc > 1){
+        // give radices to kotlin side
+        jstring jradices = jvmData.env->NewStringUTF(argv[1]);
+        jfieldID radicesField = jvmData.env->GetFieldID(jvmData.clazz, "radicesString", "Ljava/lang/String;");
+        jvmData.env->SetObjectField(jvmData.obj, radicesField, jradices);
+    }
 
     setPointerAddresses(jvmData, MPI_COMM_WORLD);
     setVDIGeneration(jvmData, generateVDIs);

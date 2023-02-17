@@ -7,7 +7,7 @@
 #include <algorithm>
 //
 
-#define VERBOSE true
+#define VERBOSE false
 
 #define PROFILING false
 

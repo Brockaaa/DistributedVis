@@ -46,8 +46,11 @@ int * getVolumeDims(const std::string& path) {
     return volume_dimensions;
 }
 
-int main() {
-    std::cout << "Hello, World!" << std::endl;
+int main(int argc, char** argv) {
+
+
+
+    std::cout << "Hello, World!" << argv[0] << std::endl;
 
     std::string dataset = datasetName;
     const bool is16bit = dataset16bit;
@@ -87,6 +90,8 @@ int main() {
     JVMData jvmData = setupJVM(isCluster, "DistributedVolumes", rank);
 
     registerNatives(jvmData);
+
+
 
     setPointerAddresses(jvmData, MPI_COMM_WORLD);
     setVDIGeneration(jvmData, generateVDIs);

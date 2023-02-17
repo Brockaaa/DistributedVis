@@ -987,4 +987,6 @@ void setProgramSettings(JVMData jvmData, bool withCompression, bool benchmarkVal
     jfieldID benchmarkValuesField = jvmData.env->GetFieldID(jvmData.clazz, "benchmarkCompression", "Z");
     jvmData.env->SetBooleanField(jvmData.obj, benchmarkValuesField, jBenchmarkValues);
 
+    jvmData.env->SetIntArrayRegion()
+
 }

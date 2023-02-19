@@ -139,7 +139,7 @@ int main(int argc, char** argv) {
 
         prev_slices = start_slice[rank];
 
-        std::ifstream volumeFile ("/beegfs/ws/1/argupta-vdi_generation/Datasets/" + dataset + "/Part1/" + dataset + ".raw", std::ios::in | std::ios::binary);
+        std::ifstream volumeFile ("/beegfs/ws/1/argupta-vdi_generation/Datasets/" + dataset + "/" + dataset + ".raw", std::ios::in | std::ios::binary);
         if(!volumeFile.is_open()) {
             std::cerr<< "Could not open the volume file! " << std::endl;
         }

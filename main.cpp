@@ -202,13 +202,13 @@ void decomposeDomain(decompositionTypes type, JVMData jvmData, int num_processes
 }
 
 
-int main() {
+int main(int argc, char** argv) {
     std::cout << "Hello, World!" << std::endl;
 
     std::string dataset = datasetName;
     const bool is16bit = dataset16bit;
-    bool generateVDIs = false;
-    bool isCluster = false;
+    bool generateVDIs = true;
+    bool isCluster = true;
 
     int provided;
     MPI_Init_thread(NULL, NULL, MPI_THREAD_SERIALIZED, &provided);
@@ -241,6 +241,13 @@ int main() {
 
     registerNatives(jvmData);
 
+    if(argc > 1){
+        // give radices to kotlin side
+        jstring jradices = jvmData.env->NewStringUTF(argv[1]);
+        jfieldID radicesField = jvmData.env->GetFieldID(jvmData.clazz, "radicesString", "Ljava/lang/String;");
+        jvmData.env->SetObjectField(jvmData.obj, radicesField, jradices);
+    }
+
     setPointerAddresses(jvmData, MPI_COMM_WORLD);
     setVDIGeneration(jvmData, generateVDIs);
 
@@ -249,7 +256,8 @@ int main() {
     }
 
     if(true) {
-        int * volume_dimensions = getVolumeDims(getEnvVar("DATASET_PATH") + "/" + dataset + "/Part1");
+        //int * volume_dimensions = getVolumeDims(getEnvVar("DATASET_PATH") + "/" + dataset + "/Part1");
+        int * volume_dimensions = getVolumeDims("/beegfs/ws/1/argupta-vdi_generation/Datasets/"+ dataset);
         float pixelToWorld = 3.84f / (float)volume_dimensions[0]; //empirical
         setDatasetParams(jvmData, dataset, pixelToWorld, volume_dimensions);
         setMPIParams(jvmData, rank, node_rank, num_processes);

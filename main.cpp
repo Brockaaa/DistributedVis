@@ -256,7 +256,7 @@ int main(int argc, char** argv) {
     }
 
     if(true) {
-        int * volume_dimensions = getVolumeDims(getEnvVar("DATASET_PATH") + "/" + dataset + "/Part1");
+        int * volume_dimensions = getVolumeDims(getEnvVar("DATASET_PATH") + "/" + dataset);
         //int * volume_dimensions = getVolumeDims("/beegfs/ws/1/argupta-vdi_generation/Datasets/"+ dataset);
         float pixelToWorld = 3.84f / (float)volume_dimensions[0]; //empirical
         setDatasetParams(jvmData, dataset, pixelToWorld, volume_dimensions);

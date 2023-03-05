@@ -20,6 +20,9 @@ auto end = std::chrono::high_resolution_clock::now();
 
 auto begin_whole_compositing = std::chrono::high_resolution_clock::now();
 auto end_whole_compositing = std::chrono::high_resolution_clock::now();
+auto begin_compositing_iteration = std::chrono::high_resolution_clock::now();
+auto end_compositing_iteration = std::chrono::high_resolution_clock::now();
+
 
 double total_alltoall = 0;
 double total_gather = 0;
@@ -89,7 +92,7 @@ void registerNatives(JVMData jvmData) {
 
 //                                { (char *)"distributeVDIsForBenchmark", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIJJJII)V", (void *)&distributeVDIsForBenchmark },
                                 { (char *)"distributeVDIsWithVariableLength", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;[I[IIJJJZII)V", (void *)&distributeVDIsWithVariableLength },
-                                { (char *)"distributeVDIsWithMultipleCommunicators", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIIIJJJ)V", (void *)&distributeVDIsWithMultipleCommunicators },
+                                { (char *)"distributeVDIsWithMultipleCommunicators", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIIIJJJI)V", (void *)&distributeVDIsWithMultipleCommunicators },
 
                                 { (char *)"gatherCompositedVDIs", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;IIIIJJIJ)V", (void *)&gatherCompositedVDIs },
                                 { (char *)"gatherCompositedVDIsOutOfOrder", (char *)"(Ljava/nio/ByteBuffer;Ljava/nio/ByteBuffer;I[IIIIJJIJ)V", (void *)&gatherCompositedVDIsOutOfOrder },
@@ -563,9 +566,20 @@ void distributeVDIsWithVariableLength(JNIEnv *e, jobject clazzObject, jobject co
     }
 }
 
-void distributeVDIsWithMultipleCommunicators(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject subVDIDepth, jint color, jint divisor, jint rank, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer){
+void distributeVDIsWithMultipleCommunicators(JNIEnv *e, jobject clazzObject, jobject subVDICol, jobject subVDIDepth, jint color, jint divisor, jint rank, jint commSize, jlong colPointer, jlong depthPointer, jlong mpiPointer, jint iteration){
 #if VERBOSE
     std::cout<<"In distribute VDIs with multiple Communictors function. Comm size is "<<commSize<<" with color "<<color<<" and divisor "<<divisor<<std::endl;
+#endif
+
+#if PROFILING
+    if(iteration > 0){
+        end_compositing_iteration = std::chrono::high_resolution_clock::now();
+
+        auto elapsed = std::chrono::duration_cast<std::chrono::nanoseconds>(end_compositing_iteration - begin_compositing_iteration);
+
+        double local_compIt = (elapsed.count()) * 1e-9;
+        std::cout << "Compositing Iteration for " << rank << " in iteration " << iteration-1 <<" was " << local_compIt << std::endl;
+    }
 #endif
 
     void *ptrCol = e->GetDirectBufferAddress(subVDICol);
@@ -595,7 +609,11 @@ void distributeVDIsWithMultipleCommunicators(JNIEnv *e, jobject clazzObject, job
 #if PROFILING
     MPI_Barrier(MPI_COMM_WORLD);
     begin = std::chrono::high_resolution_clock::now();
-    begin_whole_compositing = std::chrono::high_resolution_clock::now();
+    if(iteration == 0){
+        begin_whole_compositing = std::chrono::high_resolution_clock::now();
+    }
+    begin_compositing_iteration = std::chrono::high_resolution_clock::now();
+
 #endif
 
 #if VERBOSE

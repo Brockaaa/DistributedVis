@@ -9,10 +9,10 @@ const int windowHeight = 1080;
 const int numSupersegments = 25;
 const int numOutputSupsegs = 25;
 
-const int colorSize = windowWidth * windowHeight * numSupersegments * 4 * 4;
+const int colorSize = windowWidth * windowHeight * numSupersegments * 4 * 4;Ï
 const int depthSize = windowWidth * windowHeight * numSupersegments * 4 * 2;
 
 const std::string datasetName = "Isotropic";
 const bool dataset16bit = true;
-const bool benchmarking = true;
+const bool benchmarking = false;
 #endif //DISTRIBUTEDVIS_VDIPARAMS_HPP

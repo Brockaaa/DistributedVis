@@ -9,7 +9,7 @@ const int windowHeight = 1080;
 const int numSupersegments = 25;
 const int numOutputSupsegs = 25;
 
-const int colorSize = windowWidth * windowHeight * numSupersegments * 4 * 4;Ï
+const int colorSize = windowWidth * windowHeight * numSupersegments * 4 * 4;
 const int depthSize = windowWidth * windowHeight * numSupersegments * 4 * 2;
 
 const std::string datasetName = "Isotropic";

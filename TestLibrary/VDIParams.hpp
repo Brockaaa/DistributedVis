@@ -14,5 +14,5 @@ const int depthSize = windowWidth * windowHeight * numSupersegments * 4 * 2;
 
 const std::string datasetName = "Isotropic";
 const bool dataset16bit = true;
-const bool benchmarking = false;
+const bool benchmarking = true;
 #endif //DISTRIBUTEDVIS_VDIPARAMS_HPP

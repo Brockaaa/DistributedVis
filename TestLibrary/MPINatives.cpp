@@ -609,7 +609,7 @@ void distributeVDIsWithMultipleCommunicators(JNIEnv *e, jobject clazzObject, job
 #if PROFILING
     MPI_Barrier(MPI_COMM_WORLD);
     if(rank == 0){
-        std::cout << 'Distribute Start Iteration ' << iteration;
+        std::cout << "Distribute Start Iteration " << iteration;
     }
 
     begin = std::chrono::high_resolution_clock::now();

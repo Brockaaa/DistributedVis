@@ -608,6 +608,10 @@ void distributeVDIsWithMultipleCommunicators(JNIEnv *e, jobject clazzObject, job
 
 #if PROFILING
     MPI_Barrier(MPI_COMM_WORLD);
+    if(rank == 0){
+        std::cout << 'Distribute Start Iteration ' << iteration;
+    }
+
     begin = std::chrono::high_resolution_clock::now();
     if(iteration == 0){
         begin_whole_compositing = std::chrono::high_resolution_clock::now();
@@ -638,33 +642,12 @@ void distributeVDIsWithMultipleCommunicators(JNIEnv *e, jobject clazzObject, job
 
         double local_alltoall = (elapsed.count()) * 1e-9;
 
-        double global_sum;
-
-        MPI_Reduce(&local_alltoall, &global_sum, 1, MPI_DOUBLE, MPI_SUM, 0, MPI_COMM_WORLD);
-
-        double global_alltoall = global_sum / commSize;
-
-        if (num_alltoall > warm_up_iterations) {
-            total_alltoall += global_alltoall;
-        }
-
         num_alltoall++;
 
         int rank;
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
-        std::cout << "Distribute time (full-res) at process " << rank << " was " << local_alltoall << std::endl;
-
-        if(rank == 0) {
-            std::cout << "global alltoall time: " << global_alltoall << std::endl;
-        }
-
-        if (((num_alltoall % 50) == 0) && (rank == 0)) {
-            int iterations = num_alltoall - warm_up_iterations;
-            double average_alltoall = total_alltoall / (double) iterations;
-            std::cout << "Number of alltoalls: " << num_alltoall << " average alltoall time so far: "
-                      << average_alltoall << std::endl;
-        }
+        std::cout << "Distribute time (full-res) at process " << rank << " with color " << color << " was " << local_alltoall << std::endl;
 
     }
 #endif

@@ -493,6 +493,7 @@ void distributeVDIsWithVariableLength(JNIEnv *e, jobject clazzObject, jobject co
 
 #if PROFILING
     MPI_Barrier(MPI_COMM_WORLD);
+    begin_whole_compositing = std::chrono::high_resolution_clock::now();
     begin = std::chrono::high_resolution_clock::now();
 #endif
 

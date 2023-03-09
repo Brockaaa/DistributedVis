@@ -40,6 +40,8 @@ void setPointerAddresses(JVMData jvmData, MPI_Comm renderComm) {
     void * allToAllPrefixPointer = malloc(windowWidth * windowHeight * 4);
     void * gatherColorPointer = malloc(windowHeight * windowWidth * numOutputSupsegs * 4 * 4);
     void * gatherDepthPointer = malloc(windowHeight * windowWidth * numOutputSupsegs * 4 * 2);
+    void * allToAllColorPointerComp = malloc(windowHeight * windowWidth * numSupersegments * 4 * 4);
+    void * allToAllDepthPointerComp = malloc(windowWidth * windowHeight * numSupersegments * 4 * 2);
 
     int commSize;
     MPI_Comm_size(MPI_COMM_WORLD, &commSize);
@@ -56,6 +58,14 @@ void setPointerAddresses(JVMData jvmData, MPI_Comm renderComm) {
 
     jfieldID allD = jvmData.env->GetFieldID(jvmData.clazz, "allToAllDepthPointer", "J");
     jvmData.env->SetLongField(jvmData.obj, allD, reinterpret_cast<long>(allToAllDepthPointer));
+
+    jfieldID allCC = jvmData.env->GetFieldID(jvmData.clazz, "allToAllCompressedColorPointer", "J");
+    jvmData.env->SetLongField(jvmData.obj, allCC, reinterpret_cast<long>(allToAllColorPointerComp));
+
+    jfieldID allDC = jvmData.env->GetFieldID(jvmData.clazz, "allToAllCompressedDepthPointer", "J");
+    jvmData.env->SetLongField(jvmData.obj, allDC, reinterpret_cast<long>(allToAllDepthPointerComp));
+
+
 
     jfieldID allP = jvmData.env->GetFieldID(jvmData.clazz, "allToAllPrefixPointer", "J");
     jvmData.env->SetLongField(jvmData.obj, allP, reinterpret_cast<long>(allToAllPrefixPointer));
